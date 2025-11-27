@@ -1,0 +1,140 @@
+#include "include/config_parser.h"
+
+
+static AppConfig_t *app_config = NULL;
+
+AppConfig_t **get_app_config_handle() {
+  return &app_config;
+}
+
+void set_app_config(AppConfig_t *cfg) {
+  AppConfig_t **cfg_ptr = get_app_config_handle();
+
+  if (!cfg_ptr) return;
+  if (*cfg_ptr) destroy_app_config();
+  *cfg_ptr = cfg;
+}
+
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds) {
+  DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
+
+  if (!cfg) return NULL;
+  strncpy(cfg->type, type, sizeof(cfg->type) - 1);
+  cfg->type[sizeof(cfg->type) - 1] = '\0';
+  strncpy(cfg->uri, uri, sizeof(cfg->uri) - 1);
+  strncpy(cfg->backup_mode, backup_mode, sizeof(cfg->backup_mode) - 1);
+  cfg->uri[sizeof(cfg->uri) - 1] = '\0';
+  cfg->timeout_seconds = timeout_seconds;
+
+  return cfg;
+}
+
+StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target) {
+  StorageConfig_t *cfg = malloc(sizeof(StorageConfig_t));
+
+  if (!cfg) return NULL;
+  strncpy(cfg->output_path, output_path, sizeof(cfg->output_path) - 1);
+  cfg->output_path[sizeof(cfg->output_path) - 1] = '\0';
+  strncpy(cfg->compression, compression, sizeof(cfg->compression) - 1);
+  cfg->compression[sizeof(cfg->compression) - 1] = '\0';
+  strncpy(cfg->encryption_key_path, encryption_key_path, sizeof(cfg->encryption_key_path) - 1);
+  cfg->encryption_key_path[sizeof(cfg->encryption_key_path) - 1] = '\0';
+  strncpy(cfg->remote_target, remote_target, sizeof(cfg->remote_target) - 1);
+  cfg->remote_target[sizeof(cfg->remote_target) - 1] = '\0';
+
+  return cfg;
+}
+
+RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir) {
+  RuntimeConfig_t *cfg = malloc(sizeof(RuntimeConfig_t));
+
+  if (!cfg) return NULL;
+  cfg->log_level = log_level;
+  cfg->thread_count = thread_count;
+  strncpy(cfg->temp_dir, temp_dir, sizeof(cfg->temp_dir) - 1);
+  cfg->temp_dir[sizeof(cfg->temp_dir) - 1] = '\0';
+
+  return cfg;
+}
+
+PlatformConfig_t *init_platform_config(float version) {
+  PlatformConfig_t *cfg = malloc(sizeof(PlatformConfig_t));
+
+  if (!cfg) return NULL;
+  cfg->version = version;
+
+  return cfg;
+}
+
+PluginConfig_t *init_plugin_config(const char *dir) {
+  PluginConfig_t *cfg = malloc(sizeof(PluginConfig_t));
+
+  if (!cfg) return NULL;
+  strncpy(cfg->dir, dir, sizeof(cfg->dir) - 1);
+  cfg->dir[sizeof(cfg->dir) - 1] = '\0';
+
+  return cfg;
+}
+
+AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime,
+  PlatformConfig_t *platform, PluginConfig_t *plugin) {
+  AppConfig_t *cfg = malloc(sizeof(AppConfig_t));
+
+  if (!cfg) {
+    if (db) free(db);
+    if (storage) free(storage);
+    if (runtime) free(runtime);
+    if (platform) free(platform);
+    if (plugin) free(plugin);
+
+    return NULL;
+  }
+
+  cfg->db = db;
+  cfg->storage = storage;
+  cfg->runtime = runtime;
+  cfg->platform = platform;
+  cfg->plugin = plugin;
+
+  return cfg;
+}
+
+ConfigParserError_t *create_parser_error() {
+  ConfigParserError_t *err = malloc(sizeof(ConfigParserError_t));
+  err->code = CONFIG_OK;
+  err->line = 0;
+  err->column = 0;
+
+  return err;
+}
+
+void destroy_app_config() {
+  AppConfig_t *app_cfg = NULL, **app_cfg_ref = get_app_config_handle();
+
+  app_cfg = *app_cfg_ref;
+
+  if (!app_cfg) {
+    return;
+  }
+
+  if (app_cfg->db) free(app_cfg->db);
+  if (app_cfg->storage) free(app_cfg->storage);
+  if (app_cfg->runtime) free(app_cfg->runtime);
+  if (app_cfg->platform) free(app_cfg->platform);
+  if (app_cfg->plugin) free(app_cfg->plugin);
+
+  free(app_cfg);
+  *app_cfg_ref = NULL;
+}
+
+void destroy_parser_error(ConfigParserError_t **err) {
+  if (!err) return;
+  if (!*err) {
+    free(err);
+
+    return;
+  }
+
+  free(*err);
+  *err = NULL;
+}
