@@ -2,9 +2,9 @@ name: Check Code Quality + Run Unit Tests (dbgecko)
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: ["master"]
   push:
-    branches: ["main"]
+    branches: ["master"]
 
 jobs:
   quality-check:
