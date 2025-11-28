@@ -1,9 +1,10 @@
 # precedence: CLI > YAML > DEFAULTS
 platform:
-  version: 1.0 # plugin version compatibility will be based on the platform's current 'version'
+  version: 2.0 # plugin version compatibility will be based on the platform's current 'version'
   # version: 3x.. #test with invalid
 db:
   # type: "postgres" # driver loaded will be based on the 'type'
+  type: "mysql"
   uri: "postgres://user:pass@localhost:5432/mydb"
   timeout_seconds: 30
   backup_mode: "incremental/full/schema-only"
@@ -15,12 +16,13 @@ storage:
 runtime:
   log_level: 2
   thread_count: 4
-  tmp_dir: "/home/user/dirs/document/dbgecko/directory/www/xyz/.open/dirs"
+  tmp_dir: "/home/user/dirs/document/dbgecko/directory/www/xyz/.open/dirs/"
   # TODO: add validation for the values of both the config and the cli args
   # arbitrary: "" #testing with unknown keys
 #############################
 plugin:
-  dir: "/home/toughware/open-source/dbgecko/assets/plugins"
+  dir: "/home/toughware/open-source/dbgecko/assets/plugins/"
+  # path: "libdriver_pg.1.1.1.so"
 environment:
   user: "hazel"
   password: "demon9"

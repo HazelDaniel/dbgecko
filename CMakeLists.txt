@@ -7,22 +7,22 @@ enable_testing()
 # Build the real project as a library (exclude main.c)
 file(GLOB SRC_FILES "src/*.c" "src/*/*.c")
 list(FILTER SRC_FILES EXCLUDE REGEX ".*main\\.c")
+set(CMAKE_BUILD_TYPE Debug)
 
-add_library(slre STATIC IMPORTED)
-set_target_properties(slre PROPERTIES
-	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/./lib/libslre.a"
-)
 
 add_library(dbgecko_core ${SRC_FILES})
+find_package(PkgConfig REQUIRED)
 
 # External libs
 find_library(YAML_LIB yaml)
-target_link_libraries(dbgecko_core PUBLIC ${YAML_LIB} m)
-target_link_libraries(dbgecko_core PUBLIC slre ${YAML_LIB} m)
+pkg_check_modules(PCRE2 REQUIRED libpcre2-8)
 
-target_include_directories(dbgecko_core PUBLIC include)
+target_link_libraries(dbgecko_core PUBLIC ${YAML_LIB} m  pcre2-8)
+
+target_include_directories(dbgecko_core PUBLIC include ${PCRE2_INCLUDE_DIRS})
+
+target_compile_options(dbgecko_core PRIVATE ${PCRE2_CFLAGS_OTHER})
 
 # Tests
 add_subdirectory(cmake)
 add_subdirectory(cmake/tests)
-
