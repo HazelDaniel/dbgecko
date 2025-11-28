@@ -56,14 +56,15 @@ int get_captures() {
 
     // rc = number of captured substrings INCLUDING group 0
     // group 1..3 exist for your pattern
-    for (int group = 1; group <= 3; group++) {
-        size_t start = ov[2 * group];
-        size_t end   = ov[2 * group + 1];
-        printf("Capture %d: %.*s\n",
-               group,
-               (int)(end - start),
-               subject + start);
-    }
+    //
+    // for (int group = 1; group <= 3; group++) {
+    //     size_t start = ov[2 * group];
+    //     size_t end   = ov[2 * group + 1];
+    //     printf("Capture %d: %.*s\n",
+    //            group,
+    //            (int)(end - start),
+    //            subject + start);
+    // }
 
     pcre2_code_free(re);
     pcre2_match_data_free(md);
@@ -125,12 +126,9 @@ void print_top_level_files(const char *path) {
                 NULL
             );
 
-            if (rc < 0) {
-                // No match
-                printf("(not valid)\t");
+            if (rc >= 0) {
+              printf("%s\n", entry->d_name);
             }
-
-            printf("%s\n", entry->d_name);
 
             pcre2_match_data_free(match_data);
         }
