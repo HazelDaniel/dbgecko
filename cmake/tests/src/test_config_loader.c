@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Simple verification of values
-    print_app_config(cfg);
+    // print_app_config(cfg);
     // Clean up
     destroy_app_config();
 
