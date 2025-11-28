@@ -4,7 +4,7 @@ platform:
   # version: 3x.. #test with invalid
 db:
   # type: "postgres" # driver loaded will be based on the 'type'
-  type: "mysql"
+  type: "postgres"
   uri: "postgres://user:pass@localhost:5432/mydb"
   timeout_seconds: 30
   backup_mode: "incremental/full/schema-only"

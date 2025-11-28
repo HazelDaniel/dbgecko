@@ -80,7 +80,7 @@ StackStatus_t load_candidate_path_plugin(const char *res_path, const char *key, 
 
   driver = validate_plugin_ABI(plugin_handle, err);
 
-  if (!driver) return status;
+  if (!driver) return EXEC_FAILURE;
 
   status = register_plugin(plugin_handle, key, driver);
 
@@ -114,9 +114,12 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
     return status;
   }
 
-
   status = get_key_res_regex(err, res_regex, key);
-  if (status != EXEC_SUCCESS) return status;
+  if (status != EXEC_SUCCESS) {
+    closedir(dir);
+
+    return status;
+  }
 
 
   pcre2_code *re = pcre2_compile(
@@ -193,7 +196,12 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
 
   pcre2_code_free(re); closedir(dir);
   status = load_candidate_path_plugin(candidate_path, key, err);
-  if (status != EXEC_SUCCESS) return status;
+
+  if (status != EXEC_SUCCESS)  {
+    closedir(dir);
+
+    return status;
+  }
 
   return status;
 }

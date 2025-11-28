@@ -128,6 +128,8 @@ AppConfig_t **get_app_config_handle();
 
 ConfigParserError_t *create_parser_error();
 
+// StackError_t validate_app_config(AppConfig_t *cfg);
+
 void print_app_config(AppConfig_t *cfg);
 void destroy_app_config();
 void destroy_parser_error(ConfigParserError_t **err);
