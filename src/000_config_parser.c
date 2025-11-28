@@ -66,12 +66,16 @@ PlatformConfig_t *init_platform_config(float version) {
   return cfg;
 }
 
-PluginConfig_t *init_plugin_config(const char *dir) {
+PluginConfig_t *init_plugin_config(const char *dir, const char *path) {
   PluginConfig_t *cfg = malloc(sizeof(PluginConfig_t));
 
   if (!cfg) return NULL;
   strncpy(cfg->dir, dir, sizeof(cfg->dir) - 1);
   cfg->dir[sizeof(cfg->dir) - 1] = '\0';
+
+  if (!path) return cfg;
+  strncpy(cfg->path, path, sizeof(cfg->path) - 1);
+  cfg->path[sizeof(cfg->path) - 1] = '\0';
 
   return cfg;
 }

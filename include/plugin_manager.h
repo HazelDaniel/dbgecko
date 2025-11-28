@@ -11,9 +11,12 @@
 #include "config_parser.h"
 
 //macro defs
+#define PCRE2_CODE_UNIT_WIDTH 8
+
 #define PLUGIN_ENTRY_POINT ("___plugin_entry___")
 /*TODO: switch to PCRE to support {min, max} quantifiers*/
-#define PLUGIN_VOCAB_REGEX(x) ("^libdriver_" #x "\\.\\d\\.\\d(\\.\\d)?\\.so$")
+// #define PLUGIN_VOCAB_REGEX(x) ("^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$")
+#define PLUGIN_VOCAB_REGEX(x) "^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$"
 #define POSTGRES_PLUGIN_REGEX PLUGIN_VOCAB_REGEX(pg)
 #define MYSQL_PLUGIN_REGEX PLUGIN_VOCAB_REGEX(mysql)
 #define MONGO_PLUGIN_REGEX PLUGIN_VOCAB_REGEX(mongo)
@@ -65,13 +68,16 @@ typedef struct PluginRegistry {
 
 PluginRegistry_t **get_plugin_registry_handle();
 
-void print_plugin_registry(PluginDriver_t *reg);
+float extract_plugin_version_number(const char *path, const char *regex);
+
+void print_plugin_registry(PluginRegistry_t *reg);
+void set_plugin_registry(PluginRegistry_t *reg);
 
 StackStatus_t destroy_plugin_registry(StackErrorMessage_t *err);
 StackStatus_t destroy_plugin_driver(PluginDriver_t **dr, void *handle, StackErrorMessage_t *err);
-StackStatus_t validate_plugin_ABI(PluginHandle_t handle, StackErrorMessage_t *err);
-StackStatus_t register_plugin(PluginHandle_t handle, const char *key);
-StackStatus_t load_plugin(const char *path, StackErrorMessage_t *err, const char *key);
+PluginDriver_t *validate_plugin_ABI(PluginHandle_t handle, StackErrorMessage_t *err);
+StackStatus_t register_plugin(PluginHandle_t handle, const char *key, PluginDriver_t *driver);
+StackStatus_t load_plugin(StackErrorMessage_t *err, const char *key);
 
 DriverStatus_t to_driver_status(size_t s); // ABI level error code conversion
 

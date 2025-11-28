@@ -10,17 +10,23 @@ endif()
 # Collect all C source files
 file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c")
 
+set(CMAKE_BUILD_TYPE Debug)
+
+# include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(PCRE2 REQUIRED libpcre2-8)
 pkg_check_modules(YAML REQUIRED yaml-0.1)
 
 # Create the executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} m)
+target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES} m pcre2-8)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ../include)
+target_include_directories(${PROJECT_NAME} PRIVATE ../include ${PCRE2_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${YAML_INCLUDE_DIRS})
+
+target_compile_options(${PROJECT_NAME} PRIVATE ${PCRE2_CFLAGS_OTHER})
 # Compiler flags (applies to all targets)
 add_compile_options(
     -Wall

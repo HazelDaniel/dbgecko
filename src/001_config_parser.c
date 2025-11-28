@@ -33,11 +33,13 @@ void print_app_config(AppConfig_t *cfg) {
 
   puts("plugin:");
   printf("\t dir: %s\n", cfg->plugin->dir);
+  printf("\t path: %s\n", cfg->plugin->path);
 }
 
 int assign_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err) {
   long val;
+  // TODO: validate the config values
 
 
   if (section == SECTION_DB) {
@@ -92,8 +94,9 @@ int assign_value(config_section_t section, const char *key,
   } else if (section == SECTION_PLUGIN) {
     if (strcmp(key, "dir") == 0) {
        strncpy(cfg->plugin->dir, value, BUF_LEN_S);
-    }
-    else {
+    } else if (strcmp(key, "path") == 0) {
+       strncpy(cfg->plugin->path, value, BUF_LEN_M);
+    } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown plugin key: %s", key);
 
@@ -267,7 +270,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
     DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
   PlatformConfig_t *cfg_platform = init_platform_config(DEFAULT_PLATFORM_VERSION);
-  PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_PATH);
+  PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_DIR_PATH, DEFAULT_PLUGIN_PATH);
   AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin),
   **app_config = get_app_config_handle();
   ConfigParserError_t *cfg_err = NULL;
@@ -279,7 +282,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   ConfigParserStatus_t loader_status = CONFIG_OK;
   char *string_config_list[9] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
     CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
-    CFG_PATH, CFG_PLUGIN_PREFIX(dir), NULL};
+    CFG_PATH, CFG_PLUGIN_PREFIX(dir), CFG_PLUGIN_PREFIX(path), NULL};
 
   set_app_config(cfg);
 
@@ -380,6 +383,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
           strcpy(cfg->storage->remote_target, (char *)current->value);
         } else if (strcmp(current->key, CFG_PLUGIN_PREFIX(dir)) == 0) {
           strcpy(cfg->plugin->dir, (char *)current->value);
+        } else if (strcmp(current->key, CFG_PLUGIN_PREFIX(path)) == 0) {
+          strcpy(cfg->plugin->path, (char *)current->value);
         } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(tmp_dir)) == 0) {
           strcpy(cfg->runtime->temp_dir, (char *)current->value);
         }

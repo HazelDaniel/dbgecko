@@ -11,8 +11,13 @@
 #include "globals.h"
 
 //macro defs
+#define DB_TYPE_PG ("postgres")
+#define DB_TYPE_MYSQL ("mysql")
+#define DB_TYPE_MONGO ("mongodb")
+
 #define DEFAULT_PLATFORM_VERSION (1.0)
-#define DEFAULT_PLUGIN_PATH ("assets/plugins")
+#define DEFAULT_PLUGIN_DIR_PATH ("assets/plugins")
+#define DEFAULT_PLUGIN_PATH ("") /* leave empty */
 
 #define DEFAULT_DB_URI ("default:uri")
 #define DEFAULT_DB_TYPE ("default:type")
@@ -69,6 +74,7 @@ typedef struct PlatformConfig {
 
 typedef struct PluginConfig {
   char            dir[BUF_LEN_S];
+  char            path[BUF_LEN_M];
 } PluginConfig_t;
 
 typedef struct AppConfig {
@@ -114,7 +120,7 @@ RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, cons
 
 PlatformConfig_t *init_platform_config(float version);
 
-PluginConfig_t *init_plugin_config(const char *dir);
+PluginConfig_t *init_plugin_config(const char *dir, const char *path);
 
 AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime,
   PlatformConfig_t *platform, PluginConfig_t *plugin);
