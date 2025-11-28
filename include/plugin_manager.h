@@ -14,7 +14,6 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 
 #define PLUGIN_ENTRY_POINT ("___plugin_entry___")
-/*TODO: switch to PCRE to support {min, max} quantifiers*/
 // #define PLUGIN_VOCAB_REGEX(x) ("^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$")
 #define PLUGIN_VOCAB_REGEX(x) "^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$"
 #define POSTGRES_PLUGIN_REGEX PLUGIN_VOCAB_REGEX(pg)

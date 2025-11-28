@@ -15,7 +15,7 @@ void set_app_config(AppConfig_t *cfg) {
   *cfg_ptr = cfg;
 }
 
-DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds) {
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds, _Bool online) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 
   if (!cfg) return NULL;
@@ -25,6 +25,7 @@ DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup
   strncpy(cfg->backup_mode, backup_mode, sizeof(cfg->backup_mode) - 1);
   cfg->uri[sizeof(cfg->uri) - 1] = '\0';
   cfg->timeout_seconds = timeout_seconds;
+  cfg->online = false;
 
   return cfg;
 }
@@ -141,4 +142,59 @@ void destroy_parser_error(ConfigParserError_t **err) {
 
   free(*err);
   *err = NULL;
+}
+
+void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
+  #define VALIDATE_COND_WITH_MESSAGE(cond, message) \
+  {\
+    if (cond) { \
+      *err = create_stack_error(); \
+      strcpy((*err)->message, message); \
+      if (cfg) destroy_app_config(); \
+      return; \
+    } \
+    \
+  }
+
+  char *message = NULL;
+
+  message = "config doesn't exist!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg), message);
+
+  message = "invalid platform version!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->platform->version), message);
+
+  message = "invalid platform version!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->db->timeout_seconds), message);
+
+  message = "backup mode invalid!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->db->backup_mode[0] || (strcmp(cfg->db->backup_mode, "incremental") != 0 &&\
+    strcmp(cfg->db->backup_mode, "full") != 0 && strcmp(cfg->db->backup_mode, "schema-only") != 0)), message);
+
+  message = "invalid db type!";
+  VALIDATE_COND_WITH_MESSAGE((strcmp(cfg->db->type, DB_TYPE_PG) != 0 &&\
+    strcmp(cfg->db->type, DB_TYPE_MYSQL) != 0 && strcmp(cfg->db->type, DB_TYPE_MONGO) != 0), message);
+
+  message = "uri not provided!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->db->uri[0]), message);
+
+  message = "output path not provided!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->storage->output_path[0]), message);
+
+  message = "encryption key path not provided!";
+  VALIDATE_COND_WITH_MESSAGE((cfg->db->online && !cfg->storage->encryption_key_path[0]), message);
+
+  message = "remote location not provided!";
+  VALIDATE_COND_WITH_MESSAGE((cfg->db->online && !cfg->storage->remote_target[0]), message);
+
+  message = "invalid log level!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->log_level), message);
+
+  message = "invalid thread count!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->thread_count), message);
+
+  message = "temporary runtime directory not provided!";
+  VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->temp_dir[0]), message);
+
+  #undef VALIDATE_COND_WITH_MESSAGE
 }

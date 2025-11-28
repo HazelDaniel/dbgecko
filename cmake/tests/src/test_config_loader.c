@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
     const char *config_path = argv[1];
     AppConfig_t **cfg_ptr = get_app_config_handle(), *cfg = NULL;
-    DBConfig_t *cfg_db = init_db_config("passed:postgres", "passed:https://db", "passed:full", 5000);
+    DBConfig_t *cfg_db = init_db_config("passed:postgres", "passed:https://db", "passed:full", 5000, false);
     StorageConfig_t *cfg_storage = init_storage_config("passed:./tests", "passed:shannon", "passed:./pat", "passed:http://remote");
     RuntimeConfig_t *cfg_runtime = init_runtime_config(3, 2, "passed:locals");
     PlatformConfig_t *cfg_platform = init_platform_config(2.0);
