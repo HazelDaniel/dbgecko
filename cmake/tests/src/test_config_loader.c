@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     StorageConfig_t *cfg_storage = init_storage_config("passed:./tests", "passed:shannon", "passed:./pat", "passed:http://remote");
     RuntimeConfig_t *cfg_runtime = init_runtime_config(3, 2, "passed:locals");
     PlatformConfig_t *cfg_platform = init_platform_config(2.0);
-    PluginConfig_t *cfg_plugin = init_plugin_config("/plugins");
+    PluginConfig_t *cfg_plugin = init_plugin_config("passed:/plugins", "passed:/plugins/lib_pg.1.0.so");
 
     cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin);
     set_app_config(cfg);
