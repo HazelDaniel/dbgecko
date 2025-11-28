@@ -196,5 +196,9 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
   message = "temporary runtime directory not provided!";
   VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->temp_dir[0]), message);
 
+  message = "incompatible platform version";
+  VALIDATE_COND_WITH_MESSAGE((cfg->platform->version < CURRENT_PLATFORM_VERSION - VERSION_SUPPORT_RANGE ||\
+    cfg->platform->version > CURRENT_PLATFORM_VERSION + VERSION_SUPPORT_RANGE), message);
+
   #undef VALIDATE_COND_WITH_MESSAGE
 }
