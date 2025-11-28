@@ -16,6 +16,7 @@ void print_app_config(AppConfig_t *cfg) {
   printf("\t type: %s\n", cfg->db->type);
   printf("\t backup_mode: %s\n", cfg->db->backup_mode);
   printf("\t uri: %s\n", cfg->db->uri);
+  printf("\t online: %s\n", cfg->db->online ? "true" : "false");
 
   puts("runtime:");
   printf("\t log_level: %li\n", cfg->runtime->log_level);
@@ -41,12 +42,14 @@ int assign_value(config_section_t section, const char *key,
   long val;
   // TODO: validate the config values
 
-
   if (section == SECTION_DB) {
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
     else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_S);
     else if (strcmp(key, "backup_mode") == 0) strncpy(cfg->db->backup_mode, value, BUF_LEN_XS);
-    else if (strcmp(key, "timeout_seconds") == 0) {
+    else if (strcmp(key, "online") == 0 ) {
+      if (strcmp(value, "true") == 0) cfg->db->online = true;
+      else if (strcmp(value, "false") == 0) cfg->db->online = false;
+    } else if (strcmp(key, "timeout_seconds") == 0) {
       val = strtol(value, NULL, 10);
 
       if (val <= 0) {
@@ -264,7 +267,7 @@ ConfigParserStatus_t config_load_file(const char *path,
 
 void merge_configs(int argc, char **argv, StackError_t **err) {
   DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
-    DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT);
+    DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT, true);
   StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
@@ -292,6 +295,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
 
   add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
   add_flag(&schema, CFG_RUNTIME_PREFIX(log_level), ARG_TYPE_INT);
+  add_flag(&schema, CFG_DB_PREFIX(online), ARG_TYPE_BOOL);
   add_flag(&schema, CFG_PLATFORM_PREFIX(version), ARG_TYPE_FLOAT);
 
   parser_status = parse_args(schema, &parsed_args, &arg_err, argc, argv);
@@ -348,7 +352,10 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   HASH_ITER(hh, parsed_args, current, tmp) {
     switch(current->type) {
       case ARG_TYPE_BOOL:
-        // TODO:
+        // for now, we only support key-value pattern in arguments
+        // if (strcmp(current->key, CFG_DB_PREFIX(online)) == 0) {
+        //   cfg->db->online = (!current->value || strcmp(current->value, "true") == 0) ? true : false;
+        // }
         break;
       case ARG_TYPE_INT:
         if (strcmp(current->key, CFG_DB_PREFIX(timeout_seconds)) == 0) {
@@ -391,6 +398,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
         break;
     }
   }
+
+  validate_app_config(*app_config, err);
 
   destroy_parsed_argument(parsed_args);
   destroy_flag_schema(schema);

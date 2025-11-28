@@ -24,7 +24,6 @@ StackStatus_t get_key_res_regex(StackErrorMessage_t *err, const char res_regex[B
   StackStatus_t status = EXEC_SUCCESS;
   AppConfig_t *cfg = *get_app_config_handle();
 
-
   if (!key) {
     if (strcmp(cfg->db->type, DB_TYPE_PG) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, POSTGRES_PLUGIN_REGEX);
@@ -80,7 +79,7 @@ StackStatus_t load_candidate_path_plugin(const char *res_path, const char *key, 
 
   driver = validate_plugin_ABI(plugin_handle, err);
 
-  if (!driver) return status;
+  if (!driver) return EXEC_FAILURE;
 
   status = register_plugin(plugin_handle, key, driver);
 
@@ -97,7 +96,6 @@ StackStatus_t load_candidate_path_plugin(const char *res_path, const char *key, 
 
 StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const char *key) {
   StackStatus_t status = EXEC_SUCCESS;
-  DIR *dir = opendir(cfg->plugin->dir);
   struct dirent *entry = NULL;
   char fullpath[BUF_LEN_L], res_regex[BUF_LEN_XS] = {0}, candidate_path[BUF_LEN_L];
   struct stat st;
@@ -105,6 +103,18 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
   PCRE2_SIZE erroroffset;
   pcre2_match_data *match_data = NULL;
   float candidate_version = CURRENT_PLATFORM_VERSION, curr_version = -1.0f;
+  DIR *dir = NULL;
+
+  if (cfg->plugin->dir[0] == '\0') {
+    *err = malloc(BUF_LEN_S * sizeof(char));
+    snprintf(*err, BUF_LEN_S, "couldn't load plugin. No directory provided");
+    status = EXEC_FAILURE;
+    closedir(dir);
+
+    return status;
+  }
+
+  dir = opendir(cfg->plugin->dir);
 
   if (!dir) {
     *err = malloc(BUF_LEN_S * sizeof(char));
@@ -114,10 +124,12 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
     return status;
   }
 
-
   status = get_key_res_regex(err, res_regex, key);
-  if (status != EXEC_SUCCESS) return status;
+  if (status != EXEC_SUCCESS) {
+    closedir(dir);
 
+    return status;
+  }
 
   pcre2_code *re = pcre2_compile(
     (PCRE2_SPTR)res_regex,
@@ -139,7 +151,6 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
     return status;
   }
 
-
   while ((entry = readdir(dir)) != NULL) {
     if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
       continue;
@@ -152,13 +163,8 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
       snprintf(fullpath + (strlen(fullpath)), sizeof(fullpath) - strlen(fullpath), "/%s", entry->d_name);
     }
 
-
-    if (stat(fullpath, &st) != 0) continue;
-
-    if (!S_ISREG(st.st_mode)) continue;
-
+    if (stat(fullpath, &st) != 0 || !S_ISREG(st.st_mode)) continue;
     match_data = pcre2_match_data_create_from_pattern(re, NULL);
-
     rc = pcre2_match(
       re,                              // the compiled pattern
       (PCRE2_SPTR)entry->d_name,       // subject string
@@ -174,8 +180,8 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
       continue;
     }
 
-
     curr_version = extract_plugin_version_number(entry->d_name, res_regex);
+
     if (curr_version < 0) {
       pcre2_match_data_free(match_data);
       continue;
@@ -191,9 +197,15 @@ StackStatus_t load_plugin_scan(StackErrorMessage_t *err, AppConfig_t *cfg, const
     pcre2_match_data_free(match_data);
   }
 
-  pcre2_code_free(re); closedir(dir);
   status = load_candidate_path_plugin(candidate_path, key, err);
-  if (status != EXEC_SUCCESS) return status;
+
+  if (status != EXEC_SUCCESS)  {
+    pcre2_code_free(re); closedir(dir);
+
+    return status;
+  }
+
+  pcre2_code_free(re); closedir(dir);
 
   return status;
 }

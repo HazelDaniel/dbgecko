@@ -3,16 +3,18 @@ platform:
   version: 2.0 # plugin version compatibility will be based on the platform's current 'version'
   # version: 3x.. #test with invalid
 db:
-  # type: "postgres" # driver loaded will be based on the 'type'
-  type: "mysql"
-  uri: "postgres://user:pass@localhost:5432/mydb"
-  timeout_seconds: 30
-  backup_mode: "incremental/full/schema-only"
+  # type: "postgres" # driver loaded will be based on the 'type'. so, plugin path must match type
+  type: "postgres" #required
+  uri: "postgres://user:pass@localhost:5432/mydb" #required
+  timeout_seconds: 30 # default 10
+  backup_mode: "incremental" # default full
+  # backup_mode: "incremental/full/schema-only" # default full
+  online: true
 storage:
-  output_path: "/tmp/backups"
-  compression: "gzip"
-  encryption_key_path: "/home/user/.keys/backup.key"
-  remote_target: ""
+  output_path: "/tmp/backups" #required
+  compression: "gzip" #default gzip
+  encryption_key_path: "/home/user/.keys/backup.key" # (required) for secure connection
+  remote_target: "ssh://" # remote location
 runtime:
   log_level: 2
   thread_count: 4
@@ -23,6 +25,3 @@ runtime:
 plugin:
   dir: "/home/toughware/open-source/dbgecko/assets/plugins/"
   # path: "libdriver_pg.1.1.1.so"
-environment:
-  user: "hazel"
-  password: "demon9"

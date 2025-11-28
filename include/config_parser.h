@@ -16,7 +16,7 @@
 #define DB_TYPE_MONGO ("mongodb")
 
 #define DEFAULT_PLATFORM_VERSION (1.0)
-#define DEFAULT_PLUGIN_DIR_PATH ("assets/plugins")
+#define DEFAULT_PLUGIN_DIR_PATH ("")
 #define DEFAULT_PLUGIN_PATH ("") /* leave empty */
 
 #define DEFAULT_DB_URI ("default:uri")
@@ -38,6 +38,7 @@ typedef struct DBConfig {
   char             type[BUF_LEN_XS];
   char             backup_mode[BUF_LEN_XS];
   char             uri[BUF_LEN_S];
+  _Bool            online;
   size_t           timeout_seconds;
 } DBConfig_t;
 
@@ -112,7 +113,7 @@ typedef struct ConfigParserError {
  **/
 ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
 
-DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds);
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds, _Bool online);
 
 StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target);
 
@@ -128,7 +129,10 @@ AppConfig_t **get_app_config_handle();
 
 ConfigParserError_t *create_parser_error();
 
+// StackError_t validate_app_config(AppConfig_t *cfg);
+
 void print_app_config(AppConfig_t *cfg);
+void validate_app_config(AppConfig_t *cfg, StackError_t **err);
 void destroy_app_config();
 void destroy_parser_error(ConfigParserError_t **err);
 /**

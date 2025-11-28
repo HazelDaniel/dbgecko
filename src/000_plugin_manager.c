@@ -178,9 +178,9 @@ StackStatus_t destroy_plugin_driver(PluginDriver_t **dr, void *handle, StackErro
   }
 
   LOCAL_CLEANUP()
-  #undef LOCAL_CLEANUP
 
   return EXEC_SUCCESS;
+  #undef LOCAL_CLEANUP
 }
 
 StackStatus_t destroy_plugin_registry(StackErrorMessage_t *err) {
