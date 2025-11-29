@@ -10,8 +10,6 @@ endif()
 # Collect all C source files
 file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c")
 
-set(CMAKE_BUILD_TYPE Debug)
-
 # include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 
@@ -40,4 +38,4 @@ add_compile_options(
 
 enable_testing()
 
-install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../bin)

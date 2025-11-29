@@ -9,6 +9,7 @@ db:
   timeout_seconds: 30 # default 10
   backup_mode: "incremental" # default full
   # backup_mode: "incremental/full/schema-only" # default full
+  # max_retries: (todo) default 3
   online: true
 storage:
   output_path: "/tmp/backups" #required

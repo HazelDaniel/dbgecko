@@ -7,7 +7,7 @@ enable_testing()
 # Build the real project as a library (exclude main.c)
 file(GLOB SRC_FILES "src/*.c" "src/*/*.c")
 list(FILTER SRC_FILES EXCLUDE REGEX ".*main\\.c")
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
 
 
 add_library(dbgecko_core ${SRC_FILES})
@@ -26,3 +26,4 @@ target_compile_options(dbgecko_core PRIVATE ${PCRE2_CFLAGS_OTHER})
 # Tests
 add_subdirectory(cmake)
 add_subdirectory(cmake/tests)
+
