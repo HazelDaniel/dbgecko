@@ -14,7 +14,7 @@ storage:
   output_path: "/tmp/backups" #required
   compression: "gzip" #default gzip
   encryption_key_path: "/home/user/.keys/backup.key" # (required) for secure connection
-  remote_target: "ssh://" # remote location
+  remote_target: "ssh:// | file:///tmp" # remote location
 runtime:
   log_level: 2
   thread_count: 4
@@ -25,3 +25,23 @@ runtime:
 plugin:
   dir: "/home/toughware/open-source/dbgecko/assets/plugins/"
   # path: "libdriver_pg.1.1.1.so"
+# only one of the fields below needed
+s3:
+  endpoint: "https:// | http:// | minio:9000 | .."
+  region: "us-east1"
+  access_key: ""
+  secret_key: ""
+  use_ssl: true
+  path_style: ""
+  session_token: ""
+  max_retries: 3
+  timeout_seconds: 10
+  multipart_threshold_mb: 1000
+  multipart_chunk_mb: 100
+ssh:
+  private_key: ""
+  port: 22
+  username: ""
+  max_retries: 3
+  timeout_seconds: 30
+  verify_known_hosts: true
