@@ -34,6 +34,9 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
   StorageConfig_t *cfg = malloc(sizeof(StorageConfig_t));
 
   if (!cfg) return NULL;
+  cfg->backend = malloc(sizeof(StorageBackendConfig_t));
+  if (!cfg->backend) return NULL;
+
   strncpy(cfg->output_path, output_path, sizeof(cfg->output_path) - 1);
   cfg->output_path[sizeof(cfg->output_path) - 1] = '\0';
   strncpy(cfg->compression, compression, sizeof(cfg->compression) - 1);
@@ -42,6 +45,7 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
   cfg->encryption_key_path[sizeof(cfg->encryption_key_path) - 1] = '\0';
   strncpy(cfg->remote_target, remote_target, sizeof(cfg->remote_target) - 1);
   cfg->remote_target[sizeof(cfg->remote_target) - 1] = '\0';
+
 
   return cfg;
 }
@@ -123,7 +127,12 @@ void destroy_app_config() {
   }
 
   if (app_cfg->db) free(app_cfg->db);
-  if (app_cfg->storage) free(app_cfg->storage);
+
+  if (app_cfg->storage) {
+    if (app_cfg->storage->backend) free(app_cfg->storage->backend);
+    free(app_cfg->storage);
+  }
+
   if (app_cfg->runtime) free(app_cfg->runtime);
   if (app_cfg->platform) free(app_cfg->platform);
   if (app_cfg->plugin) free(app_cfg->plugin);
