@@ -2,6 +2,8 @@
 #define ___CONFIG_PARSER_H___
 
 // external library headers
+#include <stddef.h>
+#include <stdint.h>
 #include <yaml.h>
 
 // standard library headers
@@ -48,7 +50,10 @@ typedef enum {
   SECTION_STORAGE,
   SECTION_RUNTIME,
   SECTION_PLATFORM,
-  SECTION_PLUGIN
+  SECTION_PLUGIN,
+  SECTION_CHILD_S3,
+  SECTION_CHILD_SSH,
+  SECTION_CHILD_SFTP
 } config_section_t;
 
 typedef enum {
@@ -56,11 +61,58 @@ typedef enum {
   EXPECT_VALUE
 } parse_phase_t;
 
+typedef enum {
+  CONFIG_S3,
+  CONFIG_SSH,
+  CONFIG_SFTP
+} StorageBackendConfigKind_t;
+
+typedef struct S3Config {
+  char           region[BUF_LEN_XS];
+  char           endpoint[BUF_LEN_S];
+  char           access_key[BUF_LEN_S];
+  char           secret_key[BUF_LEN_M];
+  char           path_style[BUF_LEN_XS];
+  char           session_token[BUF_LEN_S];
+  size_t         max_retries;
+  size_t         timeout_seconds;
+  size_t         multipart_threshold_mb;
+  size_t         multipart_chunk_mb;
+  _Bool          use_ssl;
+} S3Config_t;
+
+typedef struct SSHConfig {
+  size_t         max_retries;
+  size_t         timeout_seconds;
+  char           username[BUF_LEN_S];
+  char           private_key[BUF_LEN_S];
+  _Bool          verify_known_hosts;
+  size_t         port;
+} SSHConfig_t;
+
+typedef struct SFTPConfig {
+  char           private_key[BUF_LEN_S];
+  char           username[BUF_LEN_S];
+  size_t         port;
+  size_t         max_retries;
+  size_t         timeout_seconds;
+} SFTPConfig_t;
+
+typedef struct {
+  StorageBackendConfigKind_t      kind;
+  union {
+    S3Config_t            s3;
+    SSHConfig_t           ssh;
+    SFTPConfig_t          sftp;
+  }                               backend;
+} StorageBackendConfig_t;
+
 typedef struct storageConfig {
-  char          output_path[BUF_LEN_S];
-  char          compression[BUF_LEN_XS];
-  char          encryption_key_path[BUF_LEN_S];
-  char          remote_target[BUF_LEN_S];
+  char                      output_path[BUF_LEN_S];
+  char                      compression[BUF_LEN_XS];
+  char                      encryption_key_path[BUF_LEN_S];
+  char                      remote_target[BUF_LEN_S];
+  StorageBackendConfig_t    *backend;
 } StorageConfig_t;
 
 typedef struct RuntimeConfig {
@@ -129,7 +181,8 @@ AppConfig_t **get_app_config_handle();
 
 ConfigParserError_t *create_parser_error();
 
-// StackError_t validate_app_config(AppConfig_t *cfg);
+int assign_yaml_parsed_value(config_section_t section, const char *key,
+  const char *value, AppConfig_t *cfg, ConfigParserError_t *err);
 
 void print_app_config(AppConfig_t *cfg);
 void validate_app_config(AppConfig_t *cfg, StackError_t **err);
