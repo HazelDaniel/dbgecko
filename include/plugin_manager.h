@@ -49,7 +49,7 @@ typedef struct PluginDriver {
   size_t           (*connect)(const AppConfig_t *app, DriverErrMessage_t *err);
   size_t           (*backup)(const AppConfig_t *app, DriverErrMessage_t *err);
   size_t           (*restore)(const AppConfig_t *app, DriverErrMessage_t *err);
-  size_t           (*shutdown)(DriverErrMessage_t *err);
+  size_t           (*shutdown)(const AppConfig_t *app, DriverErrMessage_t *err);
 } PluginDriver_t;
 
 /**
