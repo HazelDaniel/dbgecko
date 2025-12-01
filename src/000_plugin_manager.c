@@ -144,6 +144,7 @@ StackStatus_t destroy_plugin_driver(PluginDriver_t **dr, void *handle, StackErro
   DriverStatus_t status = OP_SUCCESS;
   PluginDriver_t *driver = NULL;
   char *dlerr = NULL;
+  AppConfig_t *app_cfg = *get_app_config_handle();
   // TODO: implement warning on error paths instead.shouldn't affect normal program flow
   #define LOCAL_CLEANUP()           \
   {                                   \
@@ -166,7 +167,7 @@ StackStatus_t destroy_plugin_driver(PluginDriver_t **dr, void *handle, StackErro
   }
 
   driver = *dr;
-  status = to_driver_status(driver->shutdown(err));
+  status = to_driver_status(driver->shutdown(app_cfg, err));
 
   if (status != OP_SUCCESS) {
     if (*err) return EXEC_FAILURE;
