@@ -43,6 +43,7 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
     printf("%sport: %zu, ", " ", bck->backend.sftp.port);
     printf("%stimeout_seconds: %zu, ", " ", bck->backend.sftp.timeout_seconds);
     printf("%smax_retries: %zu, ", " ", bck->backend.sftp.max_retries);
+    printf("%sprivate_key: %s, ", " ", bck->backend.sftp.private_key);
   } else if (bck->kind == CONFIG_SSH) {
     printf("%susername: %s, ", " ", bck->backend.ssh.username);
     printf("%sport: %zu, ", " ", bck->backend.ssh.port);
