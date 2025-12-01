@@ -52,12 +52,16 @@ typedef struct StorageOps {
 typedef struct StorageContext {
   StorageOps_t      *ops;
   void              *state; // implementation-specific state (local fs context, cloud credentials, SSH connection, etc.)
-  StackStatus_t     (*cleanup)(const StorageContext_t * const ctx);
+  StackStatus_t     (*cleanup)(const StorageContext_t *const ctx);
 } StorageContext_t;
 
 RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri);
 
+StorageOps_t *get_storage_ops_table();
+
 StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc);
+
+StackStatus_t destroy_storage_context(StorageContext_t *ctx);
 
 
 #endif /* ___STORAGE_H___ */

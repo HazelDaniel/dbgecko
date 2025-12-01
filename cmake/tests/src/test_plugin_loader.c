@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     char *err_message = NULL;
     StackStatus_t status = EXEC_SUCCESS;
 
+
     if (cfg_ptr) cfg = *cfg_ptr;
 
     if (!cfg) {
@@ -45,8 +46,8 @@ int main(int argc, char *argv[]) {
       return err_message ? EXEC_SUCCESS : EXEC_FAILURE;
     }
 
-    destroy_app_config();
     status = destroy_plugin_registry(&err_message);
+    destroy_app_config();
 
     if (status != EXEC_SUCCESS) {
       if (err_message) {
