@@ -10,7 +10,7 @@ static StorageOps_t storage_ops_table[SUPPORTED_PROTOCOL_COUNT] = {
     .read_file = NULL, .delete_file = NULL, .file_exists = NULL},
 };
 
-static void *storage_cleanup_table[SUPPORTED_PROTOCOL_COUNT] = {
+static StackStatus_t (*storage_cleanup_table[SUPPORTED_PROTOCOL_COUNT])(const StorageContext_t * const ctx) = {
   [PTC_SSH] = NULL,
   [PTC_SFTP] = NULL,
   [PTC_S3] = NULL,
@@ -18,6 +18,12 @@ static void *storage_cleanup_table[SUPPORTED_PROTOCOL_COUNT] = {
 
 void *create_s3_state() {
   return NULL;
+}
+
+StackStatus_t cleanup_s3_state (const StorageContext_t *const ctx) {
+  StackStatus_t status = EXEC_SUCCESS;
+
+  return status;
 }
 
 StorageContext_t *create_s3_context() {
