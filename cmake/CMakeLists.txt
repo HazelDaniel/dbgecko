@@ -20,6 +20,7 @@ pkg_check_modules(YAML REQUIRED yaml-0.1)
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES} m pcre2-8)
+target_link_options(${PROJECT_NAME} PRIVATE -rdynamic -export-dynamic)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ../include ${PCRE2_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${YAML_INCLUDE_DIRS})

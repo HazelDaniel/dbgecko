@@ -1,6 +1,6 @@
 # precedence: CLI > YAML > DEFAULTS
 platform:
-  version: 1.6 # plugin version compatibility will be based on the platform's current 'version'
+  version: 1.2 # plugin version and platform version compatibility will be based on the config's version field
   # version: 3x.. #test with invalid
 db:
   # type: "postgres" # driver loaded will be based on the 'type'. so, plugin path must match type
@@ -15,31 +15,31 @@ db:
 storage:
   output_path: "/tmp/backups" #required
   compression: "gzip" #default gzip
-  s3:
-    endpoint: "https:// | http:// | minio:9000 | .."
-    region: "us-east1"
-    access_key: ""
-    secret_key: ""
-    use_ssl: true
-    path_style: ""
-    session_token: ""
-    max_retries: 3
-    timeout_seconds: 10
-    multipart_threshold_mb: 1000
-    multipart_chunk_mb: 100
-  ssh:
-    private_key: ""
-    port: 22
-    username: ""
-    max_retries: 3
-    timeout_seconds: 30
-    verify_known_hosts: true
-  sftp:
-    private_key: "skldfsflsdsjklfjklsflsfjlsfjl"
-    port: 22
-    username: "sftpuser"
-    max_retries: 3
-    timeout_seconds: 30
+  # s3:
+  #   endpoint: "https:// | http:// | minio:9000 | .."
+  #   region: "us-east1"
+  #   access_key: ""
+  #   secret_key: ""
+  #   use_ssl: true
+  #   path_style: ""
+  #   session_token: ""
+  #   max_retries: 3
+  #   timeout_seconds: 10
+  #   multipart_threshold_mb: 1000
+  #   multipart_chunk_mb: 100
+  # ssh:
+  #   private_key: ""
+  #   port: 22
+  #   username: ""
+  #   max_retries: 3
+  #   timeout_seconds: 30
+  #   verify_known_hosts: true
+  # sftp:
+  #   private_key: "S30)#k00012k"
+  #   port: 22
+  #   username: "sftpuser"
+  #   max_retries: 3
+  #   timeout_seconds: 30
   encryption_key_path: "/home/user/.keys/backup.key" # (required) for secure connection
   remote_target: "ssh:// | file:///tmp" # remote location
 runtime:

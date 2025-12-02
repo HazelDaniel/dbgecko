@@ -14,9 +14,14 @@ add_executable(test_list_plugins ${TEST_C})
 add_executable(test_plugin_loader ${TEST_D})
 # Link against the project library
 
+
 target_link_libraries(test_config_loader PRIVATE dbgecko_core)
+
 target_link_libraries(test_plugin_loader PRIVATE dbgecko_core)
+target_link_options(test_plugin_loader PRIVATE -rdynamic -export-dynamic)
+
 target_link_libraries(test_config_arg_parser PRIVATE dbgecko_core)
+
 target_link_libraries(test_list_plugins PRIVATE dbgecko_core)
 
 add_test(NAME test_config_loader COMMAND test_config_loader "${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")
