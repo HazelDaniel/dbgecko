@@ -27,7 +27,7 @@ typedef enum {
   AUTH_FAIL,
   DATA_CORRUPT,
   FEATURE_UNSUPPORTED,
-  UNKNOWN
+  ERR_UNKNOWN
 } DriverStatus_t;
 
 typedef char *DriverErrMessage_t;
