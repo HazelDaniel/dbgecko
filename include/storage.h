@@ -15,7 +15,7 @@
 #define SFTP_PTC_TOKEN ("sftp")
 #define S3_PTC_TOKEN ("s3")
 
-#define SUPPORTED_PROTOCOL_COUNT (3)
+#define SUPPORTED_PROTOCOL_COUNT (4)
 
 
 typedef enum {
@@ -26,14 +26,15 @@ typedef enum {
   STORAGE_WRITE_FAILED,
   STORAGE_CONNECT_FAILED,
   STORAGE_FILE_NOT_FOUND,
-  STORAGE_UNKNOWN_ERR
+  STORAGE_UNKNOWN_ERR,
+  STORAGE_NO_SUPPORT
 } StorageStatus_t;
 
 typedef enum {
+  PTC_UNKNOWN,
   PTC_SSH,
   PTC_SFTP,
-  PTC_S3,
-  PTC_UNKNOWN
+  PTC_S3
 } RemoteStorageProtocol_t;
 
 typedef  char *StorageErrorMessage_t;
@@ -46,7 +47,7 @@ typedef struct StorageOps {
   StorageStatus_t   (*read_file)(StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err);
   StorageStatus_t   (*delete_file)(StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err);
   StorageStatus_t   (*mkdir)(StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err);
-  _Bool             (*file_exists)(const StorageContext_t *const ctx, const char *path);
+  _Bool             (*file_exists)(const StorageContext_t *const ctx, const char *path, StorageErrorMessage_t *err);
 } StorageOps_t;
 
 typedef struct StorageContext {
