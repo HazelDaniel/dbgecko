@@ -173,7 +173,7 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
   message = "invalid platform version!";
   VALIDATE_COND_WITH_MESSAGE((!cfg->platform->version), message);
 
-  message = "invalid platform version!";
+  message = "invalid timeout seconds value for db!";
   VALIDATE_COND_WITH_MESSAGE((!cfg->db->timeout_seconds), message);
 
   message = "backup mode invalid!";

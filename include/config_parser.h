@@ -62,6 +62,7 @@ typedef enum {
 } parse_phase_t;
 
 typedef enum {
+  CONFIG_PTC_UNKNOWN,
   CONFIG_S3,
   CONFIG_SSH,
   CONFIG_SFTP
@@ -200,6 +201,8 @@ void destroy_parser_error(ConfigParserError_t **err);
  **/
 void merge_configs(int argc, char **argv, StackError_t **err);
 void set_app_config(AppConfig_t *cfg);
+
+char *get_storage_protocol_text(StorageBackendConfigKind_t ptc);
 
 
 #endif /* ___CONFIG_PARSER_H___ */

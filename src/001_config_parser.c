@@ -86,7 +86,8 @@ void print_app_config(AppConfig_t *cfg) {
 
 int assign_yaml_parsed_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err) {
-  long val;
+  long val = 0L;
+  double val_float = 0.0f;
   // TODO: validate the config values
 
   if (section == SECTION_DB) {
@@ -127,14 +128,14 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
   } else if (section == SECTION_PLATFORM) {
     if (strcmp(key, "version") == 0) {
       char *end = NULL;
-      val = strtof(value, &end);
+      val_float = strtof(value, &end);
       if (*end != '\0') {
         err->code = CONFIG_VALIDATION_ERROR;
-        snprintf(err->message, sizeof(err->message), "Invalid platform version: %s", value);
+        snprintf(err->message, sizeof(err->message), "Invalid platform version: %.f%s", val_float, end);
 
         return -1;
       }
-      cfg->platform->version = val;
+      cfg->platform->version = val_float;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown platform key: %s", key);
@@ -250,4 +251,16 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
   }
 
   return 0;
+}
+
+char *get_storage_protocol_text(StorageBackendConfigKind_t ptc) {
+  switch (ptc) {
+    case CONFIG_S3:
+      return "s3";
+    case CONFIG_SFTP:
+      return "sftp";
+    case CONFIG_SSH:
+      return "ssh";
+    default: return "unknown";
+  }
 }
