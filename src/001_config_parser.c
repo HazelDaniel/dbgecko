@@ -41,12 +41,14 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
   } else if (bck->kind == CONFIG_SFTP) {
     printf("%susername: %s, ", " ", bck->backend.sftp.username);
     printf("%sport: %zu, ", " ", bck->backend.sftp.port);
+    printf("%shost: %s, ", " ", bck->backend.sftp.host);
     printf("%stimeout_seconds: %zu, ", " ", bck->backend.sftp.timeout_seconds);
     printf("%smax_retries: %zu, ", " ", bck->backend.sftp.max_retries);
     printf("%sprivate_key: %s, ", " ", bck->backend.sftp.private_key);
   } else if (bck->kind == CONFIG_SSH) {
     printf("%susername: %s, ", " ", bck->backend.ssh.username);
     printf("%sport: %zu, ", " ", bck->backend.ssh.port);
+    printf("%shost: %s, ", " ", bck->backend.ssh.host);
     printf("%stimeout_seconds: %zu, ", " ", bck->backend.ssh.timeout_seconds);
     printf("%smax_retries: %zu, ", " ", bck->backend.ssh.max_retries);
     printf("%sprivate_key: %s, ", " ", bck->backend.ssh.private_key);
@@ -172,6 +174,8 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
     cfg->storage->backend->kind = CONFIG_SSH;
     if (strcmp(key, "private_key") == 0) {
       strncpy(cfg->storage->backend->backend.ssh.private_key, value, BUF_LEN_S);
+    } else if (strcmp(key, "host") == 0) {
+      strncpy(cfg->storage->backend->backend.ssh.host, value, BUF_LEN_XS - 1);
     } else if (strcmp(key, "port") == 0) {
       val = strtol(value, NULL, 10);
       cfg->storage->backend->backend.ssh.port = (size_t)val;
@@ -231,6 +235,8 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
     cfg->storage->backend->kind = CONFIG_SFTP;
     if (strcmp(key, "private_key") == 0) {
       strncpy(cfg->storage->backend->backend.sftp.private_key, value, BUF_LEN_S);
+    } else if (strcmp(key, "host") == 0) {
+      strncpy(cfg->storage->backend->backend.sftp.host, value, BUF_LEN_XS - 1);
     } else if (strcmp(key, "port") == 0) {
       val = strtol(value, NULL, 10);
       cfg->storage->backend->backend.sftp.port = (size_t)val;

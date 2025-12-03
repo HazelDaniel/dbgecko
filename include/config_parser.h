@@ -86,6 +86,7 @@ typedef struct SSHConfig {
   size_t         max_retries;
   size_t         timeout_seconds;
   char           username[BUF_LEN_S];
+  char           host[BUF_LEN_XS];
   char           private_key[BUF_LEN_S];
   _Bool          verify_known_hosts;
   size_t         port;
@@ -94,6 +95,7 @@ typedef struct SSHConfig {
 typedef struct SFTPConfig {
   char           private_key[BUF_LEN_S];
   char           username[BUF_LEN_S];
+  char           host[BUF_LEN_XS];
   size_t         port;
   size_t         max_retries;
   size_t         timeout_seconds;
