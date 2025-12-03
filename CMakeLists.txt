@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_BUILD_TYPE Debug)
 project(dbgecko_root C)
 
 enable_testing()
@@ -7,19 +8,22 @@ enable_testing()
 # Build the real project as a library (exclude main.c)
 file(GLOB SRC_FILES "src/*.c" "src/*/*.c")
 list(FILTER SRC_FILES EXCLUDE REGEX ".*main\\.c")
-# set(CMAKE_BUILD_TYPE Debug)
 
 
-add_library(dbgecko_core ${SRC_FILES})
+add_library(dbgecko_core SHARED ${SRC_FILES})
 find_package(PkgConfig REQUIRED)
+find_package(libssh REQUIRED)
 
 # External libs
 find_library(YAML_LIB yaml)
 pkg_check_modules(PCRE2 REQUIRED libpcre2-8)
+pkg_check_modules(LIBSSH REQUIRED libssh)
 
-target_link_libraries(dbgecko_core PUBLIC ${YAML_LIB} m  pcre2-8)
+target_link_libraries(dbgecko_core PUBLIC ${YAML_LIB} m  pcre2-8 ${LIBSSH_LIBRARIES})
+target_link_options(dbgecko_core PUBLIC -rdynamic -export-dynamic)
 
-target_include_directories(dbgecko_core PUBLIC include ${PCRE2_INCLUDE_DIRS})
+target_include_directories(dbgecko_core PUBLIC include ${PCRE2_INCLUDE_DIRS} ${LIBSSH_INCLUDE_DIRS})
+target_link_directories(dbgecko_core PUBLIC ${LIBSSH_LIBRARY_DIRS})
 
 target_compile_options(dbgecko_core PRIVATE ${PCRE2_CFLAGS_OTHER})
 

@@ -56,5 +56,5 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    return status;
+    return EXEC_SUCCESS;
 }

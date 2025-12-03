@@ -1,6 +1,7 @@
 # All test files inside tests/src
 cmake_minimum_required(VERSION 3.30)
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_BUILD_TYPE Debug)
 project(dbgecko_test C)
 
 file(GLOB TEST_A "src/test_config_loader.c")
@@ -17,7 +18,7 @@ add_executable(test_plugin_loader ${TEST_D})
 
 target_link_libraries(test_config_loader PRIVATE dbgecko_core)
 
-target_link_libraries(test_plugin_loader PRIVATE dbgecko_core)
+target_link_libraries(test_plugin_loader PUBLIC dbgecko_core)
 target_link_options(test_plugin_loader PRIVATE -rdynamic -export-dynamic)
 
 target_link_libraries(test_config_arg_parser PRIVATE dbgecko_core)
