@@ -16,24 +16,24 @@ storage:
   output_path: "/tmp/backups" #required
   compression: "gzip" #default gzip
   # s3:
-  #   endpoint: "https:// | http:// | minio:9000 | .."
-  #   region: "us-east1"
-  #   access_key: ""
-  #   secret_key: ""
-  #   use_ssl: true
-  #   path_style: ""
-  #   session_token: ""
-  #   max_retries: 3
-  #   timeout_seconds: 10
-  #   multipart_threshold_mb: 1000
-  #   multipart_chunk_mb: 100
-  # ssh:
-  #   private_key: ""
-  #   port: 22
-  #   username: ""
-  #   max_retries: 3
-  #   timeout_seconds: 30
-  #   verify_known_hosts: true
+    # endpoint: "https:// | http:// | minio:9000 | .."
+    # region: "us-east1"
+    # access_key: ""
+    # secret_key: ""
+    # use_ssl: true
+    # path_style: ""
+    # session_token: ""
+    # max_retries: 3
+    # timeout_seconds: 10
+    # multipart_threshold_mb: 1000
+    # multipart_chunk_mb: 100
+  ssh:
+    private_key: "/path-to-private-key"
+    port: 22
+    username: ""
+    max_retries: 3
+    timeout_seconds: 30
+    verify_known_hosts: true
   # sftp:
   #   private_key: "S30)#k00012k"
   #   port: 22
