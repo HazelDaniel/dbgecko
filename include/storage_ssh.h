@@ -15,10 +15,18 @@
 
 
 typedef struct SSHState {
-  // SSHSessionHandle_t    *ssh_handle;
-  void                  *ssh_handle; // TODO: replace once there's ssh header in the unit
+  size_t         max_retries;
+  size_t         timeout_seconds;
+  char           username[BUF_LEN_S];
+  char           private_key[BUF_LEN_S];
+  _Bool          verify_known_hosts;
+  size_t         port;
+  ssh_session    session;
 } SSHState_t;
 
+
+SSHState_t *create_ssh_state(const char *private_key, const char *username, size_t port, size_t max_retries,
+  size_t timeout_seconds, _Bool verify_known_hosts);
 
 StorageContext_t *create_ssh_context();
 

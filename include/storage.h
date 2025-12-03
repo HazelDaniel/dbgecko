@@ -2,6 +2,8 @@
 #define ___STORAGE_H___
 
 // external library headers
+#include <libssh/libssh.h>
+#include <libssh/sftp.h>
 
 // standard library headers
 #include <stdio.h>
@@ -17,6 +19,15 @@
 
 #define SUPPORTED_PROTOCOL_COUNT (4)
 
+#define EMIT_STORAGE_OPS_DEFS(op) \
+\
+StorageStatus_t op##__delete_file (StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err); \
+StorageStatus_t op##__mkdir (StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err); \
+StorageStatus_t op##__read_file (StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err); \
+StorageStatus_t op##__write_file (StorageContext_t *ctx, const char *path, const void *data, size_t size, StorageErrorMessage_t *err); \
+\
+_Bool op##__file_exists (const StorageContext_t *const ctx, const char *path, StorageErrorMessage_t *err);
+
 
 typedef enum {
   STORAGE_OK,
@@ -30,11 +41,11 @@ typedef enum {
   STORAGE_NO_SUPPORT
 } StorageStatus_t;
 
-typedef enum {
+typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
   PTC_UNKNOWN,
+  PTC_S3,
   PTC_SSH,
   PTC_SFTP,
-  PTC_S3
 } RemoteStorageProtocol_t;
 
 typedef  char *StorageErrorMessage_t;
@@ -53,16 +64,23 @@ typedef struct StorageOps {
 typedef struct StorageContext {
   StorageOps_t      *ops;
   void              *state; // implementation-specific state (local fs context, cloud credentials, SSH connection, etc.)
+  StackStatus_t     (*init)(const StorageContext_t *const ctx);
   StackStatus_t     (*cleanup)(const StorageContext_t *const ctx);
 } StorageContext_t;
 
 RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri);
+RemoteStorageProtocol_t ___unsafe_to_ptc___(size_t obj);
 
 StorageOps_t *get_storage_ops_table();
 
 StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc);
 
 StackStatus_t destroy_storage_context(StorageContext_t *ctx);
+
+EMIT_STORAGE_OPS_DEFS(unknown)
+EMIT_STORAGE_OPS_DEFS(s3)
+EMIT_STORAGE_OPS_DEFS(sftp)
+EMIT_STORAGE_OPS_DEFS(ssh)
 
 
 #endif /* ___STORAGE_H___ */

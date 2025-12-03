@@ -61,7 +61,7 @@ typedef enum {
   EXPECT_VALUE
 } parse_phase_t;
 
-typedef enum {
+typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
   CONFIG_PTC_UNKNOWN,
   CONFIG_S3,
   CONFIG_SSH,
