@@ -41,13 +41,6 @@ typedef enum {
   STORAGE_NO_SUPPORT
 } StorageStatus_t;
 
-typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
-  PTC_UNKNOWN,
-  PTC_S3,
-  PTC_SSH,
-  PTC_SFTP,
-} RemoteStorageProtocol_t;
-
 typedef  char *StorageErrorMessage_t;
 
 struct StorageContext;
