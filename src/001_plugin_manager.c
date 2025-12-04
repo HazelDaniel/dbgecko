@@ -25,11 +25,11 @@ StackStatus_t get_key_res_regex(StackErrorMessage_t *err, const char res_regex[B
   AppConfig_t *cfg = *get_app_config_handle();
 
   if (!key) {
-    if (strcmp(cfg->db->type, DB_TYPE_PG) == 0) {
+    if (strcmp(cfg->db->type, DB_TYPE_STR_PG) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, POSTGRES_PLUGIN_REGEX);
-    } else if (strcmp(cfg->db->type, DB_TYPE_MYSQL) == 0) {
+    } else if (strcmp(cfg->db->type, DB_TYPE_STR_MYSQL) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, MYSQL_PLUGIN_REGEX);
-    } else if (strcmp(cfg->db->type, DB_TYPE_MONGO) == 0) {
+    } else if (strcmp(cfg->db->type, DB_TYPE_STR_MONGO) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, MONGO_PLUGIN_REGEX);
     } else {
       *err = malloc(BUF_LEN_XS * sizeof(char));
@@ -40,11 +40,11 @@ StackStatus_t get_key_res_regex(StackErrorMessage_t *err, const char res_regex[B
       return status;
     }
   } else {
-    if (strcmp(key, DB_TYPE_PG) == 0) {
+    if (strcmp(key, DB_TYPE_STR_PG) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, POSTGRES_PLUGIN_REGEX);
-    } else if (strcmp(key, DB_TYPE_MYSQL) == 0) {
+    } else if (strcmp(key, DB_TYPE_STR_MYSQL) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, MYSQL_PLUGIN_REGEX);
-    } else if (strcmp(key, DB_TYPE_MONGO) == 0) {
+    } else if (strcmp(key, DB_TYPE_STR_MONGO) == 0) {
       snprintf((char *)res_regex, BUF_LEN_XS, MONGO_PLUGIN_REGEX);
     } else {
       *err = malloc(BUF_LEN_XS * sizeof(char));

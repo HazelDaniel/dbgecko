@@ -14,7 +14,6 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 
 #define PLUGIN_ENTRY_POINT ("___plugin_entry___")
-// #define PLUGIN_VOCAB_REGEX(x) ("^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$")
 #define PLUGIN_VOCAB_REGEX(x) "^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$"
 #define POSTGRES_PLUGIN_REGEX PLUGIN_VOCAB_REGEX(pg)
 #define MYSQL_PLUGIN_REGEX PLUGIN_VOCAB_REGEX(mysql)
@@ -36,6 +35,8 @@ typedef void *PluginHandle_t;
 /**
  *  PluginDriver_t - An ABI for the drivers exposed by the plugin libraries
  *  @version: the driver version
+ *  @name: the driver name
+ *  @init: the symbol for initializing internal states
  *  @connect: the symbol for establishing connection
  *  @backup: the symbol for backing up files
  *  @restore: the symbol for restoring files
@@ -43,13 +44,14 @@ typedef void *PluginHandle_t;
  *    the driver on startup and unloads it
  */
 typedef struct PluginDriver {
-  float            version;
-  char             name[BUF_LEN_XS];
-  size_t           (*init)(const AppConfig_t *app, DriverErrMessage_t *err);
-  size_t           (*connect)(const AppConfig_t *app, DriverErrMessage_t *err);
-  size_t           (*backup)(const AppConfig_t *app, DriverErrMessage_t *err);
-  size_t           (*restore)(const AppConfig_t *app, DriverErrMessage_t *err);
-  size_t           (*shutdown)(const AppConfig_t *app, DriverErrMessage_t *err);
+  float             version;
+  char              name[BUF_LEN_XS];
+
+  DriverStatus_t    (*init)(const AppConfig_t *app, DriverErrMessage_t *err);
+  DriverStatus_t    (*connect)(const AppConfig_t *app, DriverErrMessage_t *err);
+  DriverStatus_t    (*backup)(const AppConfig_t *app, DriverErrMessage_t *err);
+  DriverStatus_t    (*restore)(const AppConfig_t *app, DriverErrMessage_t *err);
+  DriverStatus_t    (*shutdown)(const AppConfig_t *app, DriverErrMessage_t *err);
 } PluginDriver_t;
 
 /**

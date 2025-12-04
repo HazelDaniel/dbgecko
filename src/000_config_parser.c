@@ -181,8 +181,8 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
     strcmp(cfg->db->backup_mode, "full") != 0 && strcmp(cfg->db->backup_mode, "schema-only") != 0)), message);
 
   message = "invalid db type!";
-  VALIDATE_COND_WITH_MESSAGE((strcmp(cfg->db->type, DB_TYPE_PG) != 0 &&\
-    strcmp(cfg->db->type, DB_TYPE_MYSQL) != 0 && strcmp(cfg->db->type, DB_TYPE_MONGO) != 0), message);
+  VALIDATE_COND_WITH_MESSAGE((strcmp(cfg->db->type, DB_TYPE_STR_PG) != 0 &&\
+    strcmp(cfg->db->type, DB_TYPE_STR_MYSQL) != 0 && strcmp(cfg->db->type, DB_TYPE_STR_MONGO) != 0), message);
 
   message = "uri not provided!";
   VALIDATE_COND_WITH_MESSAGE((!cfg->db->uri[0]), message);

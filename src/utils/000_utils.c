@@ -49,7 +49,6 @@ StackError_t *create_stack_error() {
   return err;
 }
 
-
 void destroy_stack_error(StackError_t *err) {
   if (!err) return;
   free(err);

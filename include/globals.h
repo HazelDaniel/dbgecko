@@ -32,12 +32,21 @@ typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
   PTC_SFTP,
 } RemoteStorageProtocol_t;
 
+typedef enum {
+  DB_TYPE_UNKNOWN = 0,
+  DB_TYPE_MONGO,
+  DB_TYPE_POSTGRES,
+  DB_TYPE_MYSQL
+} DBType_t;
+
 typedef struct StackError {
   StackStatus_t        code;
   char                 message[BUF_LEN_M];
 } StackError_t;
 
 typedef char *StackErrorMessage_t;
+typedef char OutputBuffer_t[BUF_LEN_L];
+
 
 StackError_t *create_stack_error();
 StackError_t *___unsafe_to_stack_error___(void *err);
