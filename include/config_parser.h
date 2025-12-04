@@ -13,9 +13,9 @@
 #include "globals.h"
 
 //macro defs
-#define DB_TYPE_PG ("postgres")
-#define DB_TYPE_MYSQL ("mysql")
-#define DB_TYPE_MONGO ("mongodb")
+#define DB_TYPE_STR_PG ("postgres")
+#define DB_TYPE_STR_MYSQL ("mysql")
+#define DB_TYPE_STR_MONGO ("mongodb")
 
 #define DEFAULT_PLATFORM_VERSION (1.0)
 #define DEFAULT_PLUGIN_DIR_PATH ("")
