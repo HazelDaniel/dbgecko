@@ -18,6 +18,7 @@ typedef struct SSHState {
   size_t         max_retries;
   size_t         timeout_seconds;
   char           username[BUF_LEN_S];
+  char           host[BUF_LEN_XS];
   char           private_key[BUF_LEN_S];
   _Bool          verify_known_hosts;
   size_t         port;
@@ -25,8 +26,8 @@ typedef struct SSHState {
 } SSHState_t;
 
 
-SSHState_t *create_ssh_state(const char *private_key, const char *username, size_t port, size_t max_retries,
-  size_t timeout_seconds, _Bool verify_known_hosts);
+SSHState_t *create_ssh_state(const char *private_key, const char *host, const char *username, size_t port,
+  size_t max_retries, size_t timeout_seconds, _Bool verify_known_hosts);
 
 StorageContext_t *create_ssh_context();
 

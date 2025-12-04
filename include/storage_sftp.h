@@ -18,6 +18,7 @@
 typedef struct SFTPState {
   char           private_key[BUF_LEN_S];
   char           username[BUF_LEN_S];
+  char           host[BUF_LEN_XS];
   size_t         port;
   size_t         max_retries;
   size_t         timeout_seconds;

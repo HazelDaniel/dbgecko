@@ -25,6 +25,13 @@ typedef enum {
   EXEC_FAILURE = -1,
 } StackStatus_t;
 
+typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
+  PTC_UNKNOWN,
+  PTC_S3,
+  PTC_SSH,
+  PTC_SFTP,
+} RemoteStorageProtocol_t;
+
 typedef struct StackError {
   StackStatus_t        code;
   char                 message[BUF_LEN_M];

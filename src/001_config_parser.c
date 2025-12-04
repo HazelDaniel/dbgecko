@@ -11,13 +11,13 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
   printf("\t");
 
   switch (bck->kind) {
-    case CONFIG_S3:
+    case PTC_S3:
       puts("s3:");
       break;
-    case CONFIG_SSH:
+    case PTC_SSH:
       puts("ssh:");
       break;
-    case CONFIG_SFTP:
+    case PTC_SFTP:
       puts("sftp:");
       break;
     default:
@@ -26,7 +26,7 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
   }
 
   printf("%s{", left_pad_2);
-  if (bck->kind == CONFIG_S3) {
+  if (bck->kind == PTC_S3) {
     printf("%sendpoint: %s, ", " ", bck->backend.s3.endpoint);
     printf("%sregion: %s, ", " ", bck->backend.s3.region);
     printf("%saccess_key: %s, ", " ", bck->backend.s3.access_key);
@@ -38,14 +38,14 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
     printf("%stimeout_seconds: %zu, ", " ", bck->backend.s3.timeout_seconds);
     printf("%smultipart_threshold_mb: %zu, ", " ", bck->backend.s3.multipart_threshold_mb);
     printf("%smultipart_chunk_mb: %zu, ", " ", bck->backend.s3.multipart_chunk_mb);
-  } else if (bck->kind == CONFIG_SFTP) {
+  } else if (bck->kind == PTC_SFTP) {
     printf("%susername: %s, ", " ", bck->backend.sftp.username);
     printf("%sport: %zu, ", " ", bck->backend.sftp.port);
     printf("%shost: %s, ", " ", bck->backend.sftp.host);
     printf("%stimeout_seconds: %zu, ", " ", bck->backend.sftp.timeout_seconds);
     printf("%smax_retries: %zu, ", " ", bck->backend.sftp.max_retries);
     printf("%sprivate_key: %s, ", " ", bck->backend.sftp.private_key);
-  } else if (bck->kind == CONFIG_SSH) {
+  } else if (bck->kind == PTC_SSH) {
     printf("%susername: %s, ", " ", bck->backend.ssh.username);
     printf("%sport: %zu, ", " ", bck->backend.ssh.port);
     printf("%shost: %s, ", " ", bck->backend.ssh.host);
@@ -171,7 +171,7 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
       return -1;
     }
   } else if (section == SECTION_CHILD_SSH) {
-    cfg->storage->backend->kind = CONFIG_SSH;
+    cfg->storage->backend->kind = PTC_SSH;
     if (strcmp(key, "private_key") == 0) {
       strncpy(cfg->storage->backend->backend.ssh.private_key, value, BUF_LEN_S);
     } else if (strcmp(key, "host") == 0) {
@@ -197,7 +197,7 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
       return -1;
     }
   } else if (section == SECTION_CHILD_S3) {
-    cfg->storage->backend->kind = CONFIG_S3;
+    cfg->storage->backend->kind = PTC_S3;
     if (strcmp(key, "endpoint") == 0) {
       strncpy(cfg->storage->backend->backend.s3.endpoint, value, BUF_LEN_S);
     } else if (strcmp(key, "region") == 0) {
@@ -232,7 +232,7 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
       return -1;
     }
   } else if (section == SECTION_CHILD_SFTP) {
-    cfg->storage->backend->kind = CONFIG_SFTP;
+    cfg->storage->backend->kind = PTC_SFTP;
     if (strcmp(key, "private_key") == 0) {
       strncpy(cfg->storage->backend->backend.sftp.private_key, value, BUF_LEN_S);
     } else if (strcmp(key, "host") == 0) {
@@ -259,13 +259,13 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
   return 0;
 }
 
-char *get_storage_protocol_text(StorageBackendConfigKind_t ptc) {
+char *get_storage_protocol_text(RemoteStorageProtocol_t ptc) {
   switch (ptc) {
-    case CONFIG_S3:
+    case PTC_S3:
       return "s3";
-    case CONFIG_SFTP:
+    case PTC_SFTP:
       return "sftp";
-    case CONFIG_SSH:
+    case PTC_SSH:
       return "ssh";
     default: return "unknown";
   }

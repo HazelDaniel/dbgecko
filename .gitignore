@@ -94,3 +94,6 @@ _CPack_Packages/
 
 #workspace specific
 .zed
+
+*.pdf
+architecture.md

@@ -61,13 +61,6 @@ typedef enum {
   EXPECT_VALUE
 } parse_phase_t;
 
-typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
-  CONFIG_PTC_UNKNOWN,
-  CONFIG_S3,
-  CONFIG_SSH,
-  CONFIG_SFTP
-} StorageBackendConfigKind_t;
-
 typedef struct S3Config {
   char           region[BUF_LEN_XS];
   char           endpoint[BUF_LEN_S];
@@ -102,7 +95,7 @@ typedef struct SFTPConfig {
 } SFTPConfig_t;
 
 typedef struct {
-  StorageBackendConfigKind_t      kind;
+  RemoteStorageProtocol_t         kind;
   union {
     S3Config_t            s3;
     SSHConfig_t           ssh;
@@ -204,7 +197,7 @@ void destroy_parser_error(ConfigParserError_t **err);
 void merge_configs(int argc, char **argv, StackError_t **err);
 void set_app_config(AppConfig_t *cfg);
 
-char *get_storage_protocol_text(StorageBackendConfigKind_t ptc);
+char *get_storage_protocol_text(RemoteStorageProtocol_t ptc);
 
 
 #endif /* ___CONFIG_PARSER_H___ */
