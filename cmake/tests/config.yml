@@ -35,7 +35,7 @@ storage:
   #   timeout_seconds: 30
   #   verify_known_hosts: true
   local:
-    base_dir: "/home/toughware/"
+    base_dir: "/home/a-dev/"
   # sftp:
   #   private_key: "S30)#k00012k"
   #   port: 22

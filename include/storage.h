@@ -17,7 +17,7 @@
 #define SFTP_PTC_TOKEN ("sftp")
 #define S3_PTC_TOKEN ("s3")
 
-#define SUPPORTED_PROTOCOL_COUNT (4)
+#define SUPPORTED_PROTOCOL_COUNT (5)
 
 #define EMIT_STORAGE_OPS_DEFS(op) \
 \
@@ -73,6 +73,7 @@ StackStatus_t destroy_storage_context(StorageContext_t *ctx);
 EMIT_STORAGE_OPS_DEFS(unknown)
 EMIT_STORAGE_OPS_DEFS(s3)
 EMIT_STORAGE_OPS_DEFS(sftp)
+EMIT_STORAGE_OPS_DEFS(local_fs)
 EMIT_STORAGE_OPS_DEFS(ssh)
 
 

@@ -16,6 +16,8 @@ static StorageOps_t storage_ops_table[SUPPORTED_PROTOCOL_COUNT] = {
     .read_file = sftp__read_file, .delete_file = sftp__delete_file, .file_exists = sftp__file_exists },
   [PTC_S3] = { .write_file = s3__write_file, .mkdir = s3__mkdir,
     .read_file = s3__read_file, .delete_file = s3__delete_file, .file_exists = s3__file_exists },
+  [PTC_LOCAL] = { .write_file = local_fs__write_file, .mkdir = local_fs__mkdir,
+    .read_file = local_fs__read_file, .delete_file = local_fs__delete_file, .file_exists = local_fs__file_exists },
   [PTC_UNKNOWN] = { .write_file = unknown__write_file, .mkdir = unknown__mkdir,
     .read_file = unknown__read_file, .delete_file = unknown__delete_file,
     .file_exists = unknown__file_exists }
