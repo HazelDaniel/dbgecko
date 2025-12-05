@@ -27,13 +27,15 @@ storage:
     # timeout_seconds: 10
     # multipart_threshold_mb: 1000
     # multipart_chunk_mb: 100
-  ssh:
-    private_key: "/path-to-private-key"
-    port: 22
-    username: ""
-    max_retries: 3
-    timeout_seconds: 30
-    verify_known_hosts: true
+  # ssh:
+  #   private_key: "/path-to-private-key"
+  #   port: 22
+  #   username: ""
+  #   max_retries: 3
+  #   timeout_seconds: 30
+  #   verify_known_hosts: true
+  local:
+    base_dir: "/home/toughware/"
   # sftp:
   #   private_key: "S30)#k00012k"
   #   port: 22

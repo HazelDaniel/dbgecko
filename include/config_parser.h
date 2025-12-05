@@ -53,7 +53,8 @@ typedef enum {
   SECTION_PLUGIN,
   SECTION_CHILD_S3,
   SECTION_CHILD_SSH,
-  SECTION_CHILD_SFTP
+  SECTION_CHILD_SFTP,
+  SECTION_CHILD_LOCAL
 } config_section_t;
 
 typedef enum {
@@ -94,12 +95,17 @@ typedef struct SFTPConfig {
   size_t         timeout_seconds;
 } SFTPConfig_t;
 
+typedef struct LocalConfig {
+  char           base_dir[BUF_LEN_S];
+} LocalConfig_t;
+
 typedef struct {
   RemoteStorageProtocol_t         kind;
   union {
     S3Config_t            s3;
     SSHConfig_t           ssh;
     SFTPConfig_t          sftp;
+    LocalConfig_t         local;
   }                               backend;
 } StorageBackendConfig_t;
 

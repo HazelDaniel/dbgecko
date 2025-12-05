@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
       return -1;
     }
 
-    // print_app_config(cfg);
+    print_app_config(cfg);
     destroy_app_config();
 
     return 0;
