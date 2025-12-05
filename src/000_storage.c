@@ -3,6 +3,7 @@
 #include "include/storage_s3.h"
 #include "include/storage_ssh.h"
 #include "include/storage_sftp.h"
+#include "include/storage_local.h"
 
 
 StackStatus_t destroy_local_ssh_state(SSHState_t *state_ssh) {
@@ -169,6 +170,39 @@ StorageContext_t *create_ssh_context() {
 }
 /* ----------------------------------------------------------- */
 
+/* -----------------------LOCAL-------------------------------- */
+LocalFSState_t *create_local_fs_state() {
+  LocalFSState_t *state = malloc(sizeof(LocalFSState_t));
+
+  if (!state) return NULL;
+
+  state->bytes_transferred = 0;
+  state->current_file = NULL;
+
+  return state;
+}
+
+StackStatus_t cleanup_local_fs_state (const StorageContext_t *const ctx) {
+  StackStatus_t status = EXEC_SUCCESS;
+  LocalFSState_t *state_local = (LocalFSState_t *)ctx->state;
+
+  if (state_local->current_file) fclose(state_local->current_file);
+
+  return status;
+}
+
+StorageContext_t *create_local_fs_context() {
+  StorageContext_t *ctx = malloc(sizeof(StorageContext_t));
+  StorageOps_t *storage_ops_table = get_storage_ops_table();
+
+  ctx->cleanup = cleanup_local_fs_state;
+  ctx->ops = &storage_ops_table[PTC_LOCAL];
+  ctx->state = create_local_fs_state();
+
+  return ctx;
+}
+/* ----------------------------------------------------------- */
+
 StackStatus_t destroy_storage_context(StorageContext_t *ctx) {
   StackStatus_t status = EXEC_SUCCESS;
 
@@ -200,6 +234,7 @@ StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc)
     case PTC_S3: return create_s3_context();
     case PTC_SSH: return create_ssh_context();
     case PTC_SFTP: return create_sftp_context();
+    case PTC_LOCAL: return create_local_fs_context();
     default: return NULL;
   }
 }
