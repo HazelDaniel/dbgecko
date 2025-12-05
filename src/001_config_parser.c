@@ -20,6 +20,9 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
     case PTC_SFTP:
       puts("sftp:");
       break;
+    case PTC_LOCAL:
+      puts("local:");
+      break;
     default:
       puts("");
       return;
@@ -53,6 +56,8 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
     printf("%smax_retries: %zu, ", " ", bck->backend.ssh.max_retries);
     printf("%sprivate_key: %s, ", " ", bck->backend.ssh.private_key);
     printf("%sverify_known_hosts: %s, ", " ", bck->backend.ssh.verify_known_hosts ? "true" : "false");
+  } else if (bck->kind == PTC_LOCAL) {
+    printf("%sbase directory: %s, ", " ", bck->backend.local.base_dir);
   }
   printf("}\n");
 }
@@ -254,6 +259,16 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
 
       return -1;
     }
+  } else if (section == SECTION_CHILD_LOCAL) {
+    cfg->storage->backend->kind = PTC_LOCAL;
+    if (strcmp(key, "base_dir") == 0) {
+      strncpy(cfg->storage->backend->backend.local.base_dir, value, BUF_LEN_S);
+    } else {
+      err->code = CONFIG_VALIDATION_ERROR;
+      snprintf(err->message, sizeof(err->message), "Unknown filesystem configuration key for storage: %s", key);
+
+      return -1;
+    }
   }
 
   return 0;
@@ -267,6 +282,8 @@ char *get_storage_protocol_text(RemoteStorageProtocol_t ptc) {
       return "sftp";
     case PTC_SSH:
       return "ssh";
+      case PTC_LOCAL:
+        return "local";
     default: return "unknown";
   }
 }

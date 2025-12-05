@@ -30,6 +30,7 @@ typedef enum { // DO NOT CHANGE ORDER. will be used in conversions
   PTC_S3,
   PTC_SSH,
   PTC_SFTP,
+  PTC_LOCAL
 } RemoteStorageProtocol_t;
 
 typedef enum {
