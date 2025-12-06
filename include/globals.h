@@ -52,6 +52,9 @@ typedef char OutputBuffer_t[BUF_LEN_L];
 StackError_t *create_stack_error();
 StackError_t *___unsafe_to_stack_error___(void *err);
 
+int join_path(const char *base, const char *rel, char *out, size_t outlen);
+
+void set_err(const char **err, size_t size, const char *fmt, ...);
 void destroy_stack_error(StackError_t *err);
 
 

@@ -1,16 +1,40 @@
 #include "include/storage.h"
 
 
-StorageStatus_t ssh__write_file (StorageContext_t *ctx, const char *path, const void *data,
-  size_t size, StorageErrorMessage_t *err) {
+StorageStatus_t ssh__write_close(const StorageContext_t *ctx, const char *tmp_path_override, const char *final_path_override, StorageErrorMessage_t *err) {
   StorageStatus_t status = STORAGE_OK;
 
-  printf("ssh writing file aiit\n");
+  printf("ssh writing file close aiit\n");
 
   return status;
 }
 
-StorageStatus_t ssh__read_file (StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err) {
+StorageStatus_t ssh__write_chunk(const StorageContext_t *ctx, const void *buf, size_t len, StorageErrorMessage_t *err) {
+  StorageStatus_t status = STORAGE_OK;
+
+  printf("ssh writing file chunk aiit\n");
+
+  return status;
+}
+
+StorageStatus_t ssh__write_open(const StorageContext_t *ctx, const char *rel_path, StorageErrorMessage_t *err) {
+  StorageStatus_t status = STORAGE_OK;
+
+  printf("ssh writing file open aiit\n");
+
+  return status;
+}
+
+StorageStatus_t ssh__write_abort(const StorageContext_t *ctx, const char *tmp_path_override, StorageErrorMessage_t *err) {
+  StorageStatus_t status = STORAGE_OK;
+
+  printf("ssh writing file abort aiit\n");
+
+  return status;
+}
+
+StorageStatus_t ssh__read_file (const StorageContext_t *ctx, const char *rel_path, StorageDataSource sink,
+  void *userdata, StorageErrorMessage_t *err) {
   StorageStatus_t status = STORAGE_OK;
 
   printf("ssh reading file aiit\n");
@@ -18,7 +42,7 @@ StorageStatus_t ssh__read_file (StorageContext_t *ctx, const char *path, Storage
   return status;
 }
 
-StorageStatus_t ssh__mkdir (StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err) {
+StorageStatus_t ssh__mkdir (const StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err) {
   StorageStatus_t status = STORAGE_OK;
 
   printf("ssh running mkdir aiit\n");
@@ -26,7 +50,7 @@ StorageStatus_t ssh__mkdir (StorageContext_t *ctx, const char *path, StorageErro
   return status;
 }
 
-StorageStatus_t ssh__delete_file (StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err) {
+StorageStatus_t ssh__delete_file (const StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err) {
   StorageStatus_t status = STORAGE_OK;
 
   printf("ssh deleting file aiit\n");

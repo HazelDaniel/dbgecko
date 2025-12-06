@@ -18,6 +18,9 @@
 typedef struct LocalFSState {
   FILE             *current_file;
   ssize_t          bytes_transferred;
+  char             tmp_path[BUF_LEN_S];
+  char             final_path[BUF_LEN_M];
+  int              fd;
 } LocalFSState_t;
 
 
