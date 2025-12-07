@@ -7,15 +7,28 @@
 #include <pcre2.h>
 
 
-StackStatus_t register_plugin(PluginHandle_t handle, const char *key, PluginDriver_t *driver) {
+StackStatus_t register_plugin(PluginHandle_t handle, const char *key, PluginDriver_t *driver, StackErrorMessage_t *err) {
   StackStatus_t status = EXEC_SUCCESS;
   PluginRegistry_t **registry_ptr = get_plugin_registry_handle(), *registry = NULL;
+  DriverStatus_t driver_status = OP_SUCCESS;
+  AppConfig_t *cfg = *get_app_config_handle();
 
   registry = malloc(sizeof(PluginRegistry_t));
   registry->driver = driver;
   registry->handle = handle;
   strncpy(registry->key, key, BUF_LEN_XS);
   HASH_ADD_STR(*registry_ptr, key, registry);
+
+  driver_status = registry->driver->init(cfg, err); // initialize plugin after registering
+
+  if (driver_status != OP_SUCCESS) {
+    if (!*err) {
+      *err = malloc(BUF_LEN_XS * sizeof(char));
+      snprintf(*err, BUF_LEN_XS, "driver init call failed");
+
+      return EXEC_FAILURE;
+    }
+  }
 
   return status;
 }
@@ -81,11 +94,14 @@ StackStatus_t load_candidate_path_plugin(const char *res_path, const char *key, 
 
   if (!driver) return EXEC_FAILURE;
 
-  status = register_plugin(plugin_handle, key, driver);
+  status = register_plugin(plugin_handle, key, driver, err);
 
   if (status != EXEC_SUCCESS) {
-    *err = malloc(BUF_LEN_XS * sizeof(char));
-    snprintf(*err, BUF_LEN_XS, "failed to register plugin '%s' !", key);
+    if (!*err) {
+      *err = malloc(BUF_LEN_XS * sizeof(char));
+      snprintf(*err, BUF_LEN_XS, "failed to register plugin '%s' !", key);
+    }
+
     status = EXEC_FAILURE;
 
     return status;
