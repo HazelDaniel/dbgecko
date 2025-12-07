@@ -75,6 +75,7 @@ float extract_plugin_version_number(const char *path, const char *regex) {
 PluginDriver_t *validate_plugin_ABI(PluginHandle_t handle, StackErrorMessage_t *err) {
   PluginDriver_t *driver = NULL, *(*driver_wrapper)(void);
   char *dl_error = NULL;
+  AppConfig_t *cfg = *get_app_config_handle();
 
   #define LOCAL_CLEANUP_HANDLE() \
   {                               \
@@ -115,12 +116,21 @@ PluginDriver_t *validate_plugin_ABI(PluginHandle_t handle, StackErrorMessage_t *
 
   if (!driver->init || !driver->backup || !driver->connect || !driver->restore || !driver->shutdown) {
     *err = malloc(BUF_LEN_S * sizeof(char));
-    if (!driver->init) snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'init' field");
-    else if (!driver->backup) snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'backup' field");
-    else if (!driver->connect) snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'connect' field");
-    else if (!driver->restore) snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'restore' field");
-    else if (!driver->shutdown) snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'shutdown' field");
-    // if (driver->shutdown) driver->shutdown(err); // TODO: take care of this later
+
+    if (!driver->init) {
+      snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'init' field");
+      if (driver->shutdown) driver->shutdown(cfg, err);
+    } else if (!driver->backup) {
+       snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'backup' field");
+       if (driver->shutdown) driver->shutdown(cfg, err);
+    } else if (!driver->connect) {
+      snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'connect' field");
+      if (driver->shutdown) driver->shutdown(cfg, err);
+    } else if (!driver->restore) {
+      snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'restore' field");
+      if (driver->shutdown) driver->shutdown(cfg, err);
+    } else if (!driver->shutdown) snprintf(*err, BUF_LEN_S, "plugin invalid! driver missing 'shutdown' field");
+
     LOCAL_CLEANUP_HANDLE();
 
     return NULL;

@@ -26,7 +26,9 @@ typedef enum {
   AUTH_FAIL,
   DATA_CORRUPT,
   FEATURE_UNSUPPORTED,
-  ERR_UNKNOWN
+  ERR_MEM_FAILED,
+  ERR_UNKNOWN,
+  OP_FAIL
 } DriverStatus_t;
 
 typedef char *DriverErrMessage_t;
@@ -77,7 +79,7 @@ void set_plugin_registry(PluginRegistry_t *reg);
 StackStatus_t destroy_plugin_registry(StackErrorMessage_t *err);
 StackStatus_t destroy_plugin_driver(PluginDriver_t **dr, void *handle, StackErrorMessage_t *err);
 PluginDriver_t *validate_plugin_ABI(PluginHandle_t handle, StackErrorMessage_t *err);
-StackStatus_t register_plugin(PluginHandle_t handle, const char *key, PluginDriver_t *driver);
+StackStatus_t register_plugin(PluginHandle_t handle, const char *key, PluginDriver_t *driver, StackErrorMessage_t *err);
 StackStatus_t load_plugin(StackErrorMessage_t *err, const char *key);
 
 DriverStatus_t to_driver_status(size_t s); // ABI level error code conversion

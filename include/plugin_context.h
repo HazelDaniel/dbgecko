@@ -82,9 +82,10 @@ typedef struct PgBackupStreamState {
 
 
 PluginState_t *create_plugin_state_from_type(DBType_t db_type);
+PluginState_t **get_plugin_state_handle();
 
 void reset_plugin_transient_state(PluginState_t *state);
-void destroy_plugin_state(PluginState_t *state);
+void destroy_plugin_state();
 
 
 #endif /* ___PLUGIN_CONTEXT_H___ */
