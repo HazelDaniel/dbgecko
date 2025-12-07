@@ -23,7 +23,7 @@ typedef struct PGconn PGconn_t;
 typedef struct MYSQL MYSQL_t;
 
 /**
- * Transient resources allocated per operation (backup/restore/...)
+ * Transient resources allocated per operation (backup/restore/...) - agnostic of db plugin type
  * @dump_pipe: stdout pipe from backup command
  * @dump_pipe: stdin pipe from restore command
  * @buffer: the buffer shared between command - a temporary in-memory storage for R-W chunks
@@ -59,6 +59,14 @@ typedef struct PluginState {
   PluginPersistentState_t  persistent;
   PluginTransientState_t   transient;
 } PluginState_t;
+
+typedef struct PgStreamState {
+  const PluginState_t   *const plugin; // for access to persistent.db_handle.pg_conn (readonly)
+  // PGresult           *res;
+  const uint8_t         *data;
+  size_t                total_bytes;
+  size_t                cursor;
+} PgStreamState_t;
 
 
 PluginState_t *create_plugin_state_from_type(DBType_t db_type);
