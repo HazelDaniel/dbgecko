@@ -282,13 +282,7 @@ StorageStatus_t local_fs__write_abort(const StorageContext_t *ctx, const char *t
   return STORAGE_OK;
 }
 
-
 /*
- * sink(local_state, buffer, n, &status_out)
- * status_out must be set by sink if error
- */
-
- /*
  * local_fs__read_file -  read file and write into a sink callback:
  * @ctx: storage context for the local protocol
  * @rel_path: the name of the file to read
@@ -298,20 +292,18 @@ StorageStatus_t local_fs__write_abort(const StorageContext_t *ctx, const char *t
  * return: StorageStatus_t
  */
 StorageStatus_t local_fs__read_file(const StorageContext_t *ctx, const char *rel_path, StorageDataSource sink,
-  void *local_state, StorageErrorMessage_t *err) {
-  if (!ctx || !ctx->state || !rel_path || !sink) {
-    set_err((const char **)err, BUF_LEN_XS, "invalid args to localfs_read_file");
-    return STORAGE_READ_FAILED;
-  }
-  LocalFSState_t *s = (LocalFSState_t *)ctx->state;
-  char full[BUF_LEN_S], *base_dir = NULL;
+  void *sink_userdata, StorageErrorMessage_t *err) {
+  // if (!ctx || !ctx->state || !rel_path || !sink) { // currently handled in caller
+  //   set_err((const char **)err, BUF_LEN_XS, "invalid args");
+  //   return STORAGE_READ_FAILED;
+  // }
+
   AppConfig_t *cfg = *get_app_config_handle();
+  char full[BUF_LEN_S];
+  const char *base_dir = cfg->storage->backend->backend.local.base_dir;
   uint8_t buffer[DEFAULT_STREAM_BUFFER_SIZE];
   int fd;
-  ssize_t r, sent;
-  StorageStatus_t sink_status;
-
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  ssize_t r;
 
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) {
     set_err((const char **)err, BUF_LEN_XS, "path too long");
@@ -319,8 +311,9 @@ StorageStatus_t local_fs__read_file(const StorageContext_t *ctx, const char *rel
   }
 
   fd = open(full, O_RDONLY | O_CLOEXEC);
+
   if (fd < 0) {
-    set_err((const char **)err, BUF_LEN_S, "open(%s) failed: %s", full, strerror(errno));
+    set_err((const char **)err, BUF_LEN_S, "open(%s): %s", full, strerror(errno));
     return STORAGE_READ_FAILED;
   }
 
@@ -329,25 +322,26 @@ StorageStatus_t local_fs__read_file(const StorageContext_t *ctx, const char *rel
 
     if (r < 0) {
       if (errno == EINTR) continue;
-      set_err((const char **)err, BUF_LEN_S, "read failed: %s", strerror(errno));
+      set_err((const char **)err, BUF_LEN_S, "read: %s", strerror(errno));
       close(fd);
 
       return STORAGE_READ_FAILED;
     }
 
     if (r == 0) break; // EOF
-    sink_status = STORAGE_OK;
-    sent = sink(local_state, buffer, (size_t)r, &sink_status);
 
-    if (sink_status != STORAGE_OK) {
-      set_err((const char **)err, BUF_LEN_XS, "sink callback reported error");
+    StorageStatus_t sstat = STORAGE_OK;
+    ssize_t sent = sink(sink_userdata, buffer, (size_t)r, &sstat);
+
+    if (sstat != STORAGE_OK || sent < 0) {
+      set_err((const char **)err, BUF_LEN_XS, "sink error");
       close(fd);
 
-      return sink_status;
+      return sstat != STORAGE_OK ? sstat : STORAGE_READ_FAILED;
     }
 
-    if (sent < 0) {
-      set_err((const char **)err, BUF_LEN_XS, "sink callback returned negative");
+    if ((size_t)sent != (size_t)r) {
+      set_err((const char **)err, BUF_LEN_XS, "partial sink write");
       close(fd);
 
       return STORAGE_READ_FAILED;
@@ -355,6 +349,7 @@ StorageStatus_t local_fs__read_file(const StorageContext_t *ctx, const char *rel
   }
 
   close(fd);
+
   return STORAGE_OK;
 }
 

@@ -11,7 +11,7 @@ db:
   backup_mode: "incremental" # default full
   # backup_mode: "incremental/full/schema-only" # default full
   # max_retries: (todo) default 3
-  online: true
+  online: true #TODO: infer online status from url if possible - obviates the need for a separate field
 storage:
   output_path: "/tmp/backups" #required
   compression: "gzip" #default gzip

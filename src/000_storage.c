@@ -281,8 +281,8 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
   ssize_t n;
 
   if (!ctx || !ctx->ops || !ctx->ops->write_open ||
-    !ctx->ops->write_chunk || !ctx->ops->write_close) {
-    set_err((const char **)err, BUF_LEN_XS,"Invalid storage ops");
+    !ctx->ops->write_chunk || !ctx->ops->write_close || !ctx->ops->write_abort) {
+    set_err((const char **)err, BUF_LEN_XS, "Invalid storage ops");
 
     return STORAGE_WRITE_FAILED;
   }
@@ -325,4 +325,23 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
 fail_cleanup:
   ctx->ops->write_abort(ctx, tmp_path, err);
   return status;
+}
+
+/**
+ * storage_read_stream - storage/transport backend agnostic read streamer
+ * @ctx: storage context for a storage backend
+ * @src_path: object path in storage (relative path)
+ * @sink: a callback function provided by db plugins - consumer to receive chunks
+ * @local_state: the state for the sink function
+ * @err: the error message to propagate (in the event of a fail)
+ * Returns: StorageStatus_t
+ */
+StorageStatus_t storage_read_stream(StorageContext_t *ctx, const char *src_path, StorageDataSink sink,
+  void *local_state, StorageErrorMessage_t *err) {
+  if (!ctx || !ctx->state || !src_path || !sink) {
+    set_err((const char **)err, BUF_LEN_XS, "invalid args");
+    return STORAGE_READ_FAILED;
+  }
+
+  return local_fs__read_file(ctx, src_path, sink, local_state, err);
 }

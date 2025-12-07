@@ -2,7 +2,6 @@
 #define ___STORAGE_LOCAL_H___
 
 // external library headers
-// #include <libcurl.h>
 
 // standard library headers
 #include <stdio.h>
@@ -16,12 +15,17 @@
 
 
 typedef struct LocalFSState {
-  FILE             *current_file;
   ssize_t          bytes_transferred;
   char             tmp_path[BUF_LEN_S];
   char             final_path[BUF_LEN_M];
   int              fd;
 } LocalFSState_t;
+
+typedef struct LocalFSStreamReadState {
+  FILE             *fp;
+  size_t           total_size;
+  size_t           cursor;
+} LocalFSStreamReadState_t;
 
 
 LocalFSState_t *create_local_fs_state();
