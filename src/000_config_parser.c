@@ -221,7 +221,7 @@ DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *reg
   int errornumber = 0, rc = -1;
   PCRE2_SIZE erroroffset;
   DBConnConfig_t *con_config = malloc(sizeof(DBConnConfig_t));
-  char *host, *username, *port, *port_str, *password, *end_ptr;
+  char *host, *username, *port, *port_str, *password, *db, *end_ptr;
 
   #define MATCH_CLEANUP_FAIL(cond, err_msg)\
   {\
@@ -281,10 +281,14 @@ DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *reg
         len_port == 0 || len_db == 0, "connection uri missing a parameter");
 
       host = (char *)(uri + start_host), port = (char *)(uri + start_port);
-      username = (char *)(uri + start_username), password = (char *)(uri + start_password);
+      username = (char *)(uri + start_username), password = (char *)(uri + start_password),
+			db = (char *)(uri + start_db);
 
       memcpy(con_config->username, username, len_username);
       con_config->username[len_username] = '\0';
+
+      memcpy(con_config->name, db, len_db);
+      con_config->name[len_db] = '\0';
 
       memcpy(con_config->password, password, len_password);
       con_config->password[len_password] = '\0';
