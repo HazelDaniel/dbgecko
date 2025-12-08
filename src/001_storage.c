@@ -16,8 +16,9 @@ static StorageOps_t storage_ops_table[SUPPORTED_PROTOCOL_COUNT] = {
     .mkdir = sftp__mkdir, .read_file = sftp__read_file, .delete_file = sftp__delete_file, .file_exists = sftp__file_exists },
   [PTC_S3] = { .write_abort = s3__write_abort, .write_chunk = s3__write_chunk, .write_close = s3__write_close,
     .mkdir = s3__mkdir, .read_file = s3__read_file, .delete_file = s3__delete_file, .file_exists = s3__file_exists },
-  [PTC_LOCAL] = { .write_abort = local_fs__write_abort, .write_chunk = local_fs__write_chunk, .write_close = local_fs__write_close,
-    .mkdir = local_fs__mkdir, .read_file = local_fs__read_file, .delete_file = local_fs__delete_file, .file_exists = local_fs__file_exists },
+  [PTC_LOCAL] = { .write_abort = local_fs__write_abort, .write_chunk = local_fs__write_chunk,
+    .write_close = local_fs__write_close, .write_open = local_fs__write_open, .mkdir = local_fs__mkdir,
+    .read_file = local_fs__read_file, .delete_file = local_fs__delete_file, .file_exists = local_fs__file_exists },
   [PTC_UNKNOWN] = { .write_abort = unknown__write_abort, .write_chunk = unknown__write_chunk, .write_close = unknown__write_close,
     .mkdir = unknown__mkdir, .read_file = unknown__read_file, .delete_file = unknown__delete_file, .file_exists = unknown__file_exists }
 };

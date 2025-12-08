@@ -11,6 +11,16 @@ PluginRegistry_t **get_plugin_registry_handle() {
   return &plugin_registry;
 }
 
+PluginRegistry_t *get_plugin_registry_entry(const char *const key) {
+  PluginRegistry_t *plugin_entry = NULL, *plugin_head = *get_plugin_registry_handle();
+  AppConfig_t *app = *get_app_config_handle();
+
+  if (!plugin_head) return NULL;
+  HASH_FIND_STR(plugin_head, key ? key : app->db->type , plugin_entry);
+
+  return plugin_entry;
+}
+
 void set_plugin_registry(PluginRegistry_t *reg) {
   PluginRegistry_t **reg_ptr = get_plugin_registry_handle();
   char *error = NULL;
