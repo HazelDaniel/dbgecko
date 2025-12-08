@@ -5,7 +5,7 @@ platform:
 db:
   # type: "postgres" # driver loaded will be based on the 'type'. so, plugin path must match type
   type: "postgres" #required
-  uri: "postgres://user:pass@localhost:5432/mydb" #required
+  uri: "postgresql://username:password@host:5432/db" #required
   timeout_seconds: 30 # default 10
   # max_retries: 3
   backup_mode: "incremental" # default full
@@ -13,7 +13,7 @@ db:
   # max_retries: (todo) default 3
   online: true #TODO: infer online status from url if possible - obviates the need for a separate field
 storage:
-  output_path: "/tmp/backups" #required
+  output_path: "/tmp/dbgecko/backups/backup" #required
   compression: "gzip" #default gzip
   # s3:
     # endpoint: "https:// | http:// | minio:9000 | .."

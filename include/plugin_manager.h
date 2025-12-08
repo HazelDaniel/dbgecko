@@ -70,6 +70,7 @@ typedef struct PluginRegistry {
 
 
 PluginRegistry_t **get_plugin_registry_handle();
+PluginRegistry_t *get_plugin_registry_entry(const char *const key);
 
 float extract_plugin_version_number(const char *path, const char *regex);
 
