@@ -11,7 +11,6 @@
 #include "config_parser.h"
 
 //macro defs
-#define PCRE2_CODE_UNIT_WIDTH 8
 
 #define PLUGIN_ENTRY_POINT ("___plugin_entry___")
 #define PLUGIN_VOCAB_REGEX(x) "^libdriver_" #x "\\.(\\d\\.\\d)(\\.\\d)?\\.so$"

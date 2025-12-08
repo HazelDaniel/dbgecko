@@ -1,4 +1,6 @@
 #include "include/config_parser.h"
+#include <pcre2.h>
+#include <string.h>
 
 
 static AppConfig_t *app_config = NULL;
@@ -210,4 +212,111 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
     cfg->platform->version > CURRENT_PLATFORM_VERSION + VERSION_SUPPORT_RANGE), message);
 
   #undef VALIDATE_COND_WITH_MESSAGE
+}
+
+DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *regex, StackErrorMessage_t *err) {
+  int n = 0;
+  size_t group_count = 5; // magic number 5 means the plugin regex has 5 groups. changing it could cause segfault
+  char *end = NULL;
+  int errornumber = 0, rc = -1;
+  PCRE2_SIZE erroroffset;
+  DBConnConfig_t *con_config = malloc(sizeof(DBConnConfig_t));
+  char *host, *username, *port, *port_str, *password, *end_ptr;
+
+  #define MATCH_CLEANUP_FAIL(cond, err_msg)\
+  {\
+    if (cond) {\
+      set_err((const char **)err, BUF_LEN_XS, err_msg);\
+      pcre2_match_data_free(match_data);\
+      pcre2_code_free(re);\
+      free(con_config);\
+    \
+      return NULL;\
+    }\
+  }
+
+  if (!con_config) return NULL;
+  if (!regex || !uri) return NULL;
+
+  pcre2_code *re = pcre2_compile(
+    (PCRE2_SPTR)regex,
+    PCRE2_ZERO_TERMINATED,
+    0,
+    &errornumber,
+    &erroroffset,
+    NULL
+  );
+
+  if (!re) {
+    set_err((const char **)err, BUF_LEN_XS, "db connection uri regex failed to compile");
+    free(con_config);
+
+    return NULL;
+  }
+
+  pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(re, NULL);
+
+  rc = pcre2_match(re, (PCRE2_SPTR)uri, strlen(uri), 0, 0, match_data, NULL);
+
+  if (rc > 0) {
+    PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(match_data);
+
+    if (rc > 1) {
+      PCRE2_SIZE start_username = ovector[2], end_username = ovector[3];
+      size_t len_username = end_username - start_username;
+
+      PCRE2_SIZE start_password = ovector[4], end_password = ovector[5];
+      size_t len_password = end_password - start_password;
+
+      PCRE2_SIZE start_host = ovector[6], end_host = ovector[7];
+      size_t len_host = end_host - start_host;
+
+      PCRE2_SIZE start_port = ovector[8], end_port = ovector[9];
+      size_t len_port = end_port - start_port;
+
+      PCRE2_SIZE start_db = ovector[10], end_db = ovector[11];
+      size_t len_db = end_db - start_db;
+
+      MATCH_CLEANUP_FAIL(len_username == 0 || len_password == 0 || len_host == 0 ||
+        len_port == 0 || len_db == 0, "connection uri missing a parameter");
+
+      host = (char *)(uri + start_host), port = (char *)(uri + start_port);
+      username = (char *)(uri + start_username), password = (char *)(uri + start_password);
+
+      memcpy(con_config->username, username, len_username);
+      con_config->username[len_username] = '\0';
+
+      memcpy(con_config->password, password, len_password);
+      con_config->password[len_password] = '\0';
+
+      memcpy(con_config->host, host, len_host);
+      con_config->host[len_host] = '\0';
+
+      port_str = strdup(port);
+      port_str[len_port] = '\0';
+
+      end_ptr = NULL;
+      size_t port_val = strtol(port_str, &end_ptr, 10);
+
+      MATCH_CLEANUP_FAIL(!port_val || *end_ptr, "invalid port value");
+
+      free(port_str);
+      con_config->port = port_val;
+
+      pcre2_match_data_free(match_data);
+      pcre2_code_free(re);
+
+      return con_config;
+    }
+
+    MATCH_CLEANUP_FAIL(true, "invalid db connection uri construction!");
+  }
+
+  pcre2_match_data_free(match_data);
+  pcre2_code_free(re);
+  free(con_config);
+  set_err((const char **)err, BUF_LEN_XS, "invalid db connection uri!");
+
+  return NULL;
+  #undef MATCH_CLEANUP_FAIL
 }

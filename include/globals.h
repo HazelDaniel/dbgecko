@@ -7,6 +7,9 @@
 #define CURRENT_PLATFORM_VERSION (1.0)
 #define VERSION_SUPPORT_RANGE (0.5)
 
+// utf-8 aware regex parsing for pcre library
+#define PCRE2_CODE_UNIT_WIDTH 8
+
 #define BUF_LEN_XS (64)
 #define BUF_LEN_S (256)
 #define BUF_LEN_M (512)

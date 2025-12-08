@@ -197,6 +197,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   const char *config_path = NULL;
   ArgParserStatus_t parser_status = ARG_SUCCESS;
   ConfigParserStatus_t loader_status = CONFIG_OK;
+  DBConnConfig_t *db_con_config = NULL;
+  StackErrorMessage_t err_msg = NULL;
   char *string_config_list[9] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
     CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
     CFG_PATH, CFG_PLUGIN_PREFIX(dir), CFG_PLUGIN_PREFIX(path), NULL};
@@ -315,7 +317,41 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
 
   validate_app_config(*app_config, err);
 
+  #define CLEANUP_CON_CFG_PARSE_FAIL()\
+  {\
+    if (!db_con_config) {\
+      if (!err_msg) {\
+        LOCAL_CLEANUP();\
+        return;\
+      }\
+        \
+      *err = create_stack_error();\
+      strcpy((*err)->message, err_msg);\
+      free(err_msg);\
+      LOCAL_CLEANUP();\
+      return;\
+    }\
+  }
+
+  if (strcmp((*app_config)->db->type, DB_TYPE_STR_PG) == 0) {
+    db_con_config = extract_db_conn_config_from_uri((*app_config)->db->uri, POSTGRES_DB_URI_REGEX, &err_msg);
+    CLEANUP_CON_CFG_PARSE_FAIL();
+  } else if (strcmp((*app_config)->db->type, DB_TYPE_STR_MYSQL) == 0) {
+    db_con_config = extract_db_conn_config_from_uri((*app_config)->db->uri, MYSQL_DB_URI_REGEX, &err_msg);
+    CLEANUP_CON_CFG_PARSE_FAIL();
+  } else if (strcmp((*app_config)->db->type, DB_TYPE_STR_MONGO) == 0) {
+    db_con_config = extract_db_conn_config_from_uri((*app_config)->db->uri, MONGO_DB_URI_REGEX, &err_msg);
+    CLEANUP_CON_CFG_PARSE_FAIL();
+  }
+
+  snprintf((*app_config)->db->username, BUF_LEN_XS, "%s", db_con_config->username);
+  snprintf((*app_config)->db->host, BUF_LEN_XS, "%s", db_con_config->host);
+  snprintf((*app_config)->db->password, BUF_LEN_XS, "%s", db_con_config->password);
+  (*app_config)->db->port = db_con_config->port;
+
+  free(db_con_config);
   destroy_parsed_argument(parsed_args);
   destroy_flag_schema(schema);
   #undef LOCAL_CLEANUP
+  #undef CLEANUP_CON_CFG_PARSE_FAIL
 }
