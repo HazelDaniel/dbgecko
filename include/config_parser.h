@@ -13,6 +13,12 @@
 #include "globals.h"
 
 //macro defs
+
+#define DB_URI_VOCAB_REGEX(x) x "://(\\w+):(\\w+)@(\\w+):(\\d+)/(\\w+)$"
+#define POSTGRES_DB_URI_REGEX DB_URI_VOCAB_REGEX("postgresql")
+#define MYSQL_DB_URI_REGEX DB_URI_VOCAB_REGEX("mysql")
+#define MONGO_DB_URI_REGEX DB_URI_VOCAB_REGEX("mongodb")
+
 #define DB_TYPE_STR_PG ("postgres")
 #define DB_TYPE_STR_MYSQL ("mysql")
 #define DB_TYPE_STR_MONGO ("mongodb")
@@ -40,9 +46,20 @@ typedef struct DBConfig {
   char             type[BUF_LEN_XS];
   char             backup_mode[BUF_LEN_XS];
   char             uri[BUF_LEN_S];
+  char             username[BUF_LEN_XS];
+  char             host[BUF_LEN_XS];
+  char             password[BUF_LEN_XS];
   _Bool            online;
   size_t           timeout_seconds;
+  size_t           port;
 } DBConfig_t;
+
+typedef struct DBConnConfig {
+  char             host[BUF_LEN_XS];
+  char             password[BUF_LEN_XS];
+  char             username[BUF_LEN_XS];
+  size_t           port;
+} DBConnConfig_t;
 
 typedef enum {
   SECTION_NONE,
@@ -185,6 +202,8 @@ ConfigParserError_t *create_parser_error();
 
 int assign_yaml_parsed_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err);
+
+DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *regex, StackErrorMessage_t *err);
 
 void print_app_config(AppConfig_t *cfg);
 void validate_app_config(AppConfig_t *cfg, StackError_t **err);

@@ -68,6 +68,10 @@ void print_app_config(AppConfig_t *cfg) {
   printf("\t timeout_seconds: %li\n", cfg->db->timeout_seconds);
   printf("\t type: %s\n", cfg->db->type);
   printf("\t backup_mode: %s\n", cfg->db->backup_mode);
+  printf("\t username: %s\n", cfg->db->username);
+  printf("\t host: %s\n", cfg->db->host);
+  printf("\t password: %s\n", cfg->db->password);
+  printf("\t port: %zu\n", cfg->db->port);
   printf("\t uri: %s\n", cfg->db->uri);
   printf("\t online: %s\n", cfg->db->online ? "true" : "false");
 
