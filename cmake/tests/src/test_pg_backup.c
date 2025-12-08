@@ -70,18 +70,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* Step 4: load the postgres plugin by db->type */
-    status = load_plugin(&err_message, cfg->db->type);
-    if (status != EXEC_SUCCESS) {
-        printf("Plugin load failed: %s\n", err_message ? err_message : "unknown");
-        destroy_plugin_registry(&err_message);
-        destroy_app_config();
-        if (err_message)free(err_message);
-        return 1;
-    }
 
-
-    /* Step 5: Obtain plugin driver instance */
+    /* Step 4: Obtain plugin driver instance */
     PluginRegistry_t *reg = *reg_ptr;
     PluginDriver_t *driver = reg->driver;
     if (!driver || !driver->backup) {
@@ -94,7 +84,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* Step 6: execute pg_backup */
+    /* Step 5: execute pg_backup */
     DriverErrMessage_t derr = NULL;
     DriverStatus_t dstatus = driver->backup(cfg, &derr);
 
