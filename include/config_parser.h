@@ -14,7 +14,7 @@
 
 //macro defs
 
-#define DB_URI_VOCAB_REGEX(x) x "://(\\w+):(\\w+)@(\\w+):(\\d+)/(\\w+)$"
+#define DB_URI_VOCAB_REGEX(x) x "://(\\w+):(\\w+)@(\\S+):(\\d+)/(\\w+)$"
 #define POSTGRES_DB_URI_REGEX DB_URI_VOCAB_REGEX("postgresql")
 #define MYSQL_DB_URI_REGEX DB_URI_VOCAB_REGEX("mysql")
 #define MONGO_DB_URI_REGEX DB_URI_VOCAB_REGEX("mongodb")
@@ -47,7 +47,8 @@ typedef struct DBConfig {
   char             backup_mode[BUF_LEN_XS];
   char             uri[BUF_LEN_S];
   char             username[BUF_LEN_XS];
-  char             host[BUF_LEN_XS];
+  char             host[BUF_LEN_SS];
+  char             name[BUF_LEN_XS];
   char             password[BUF_LEN_XS];
   _Bool            online;
   size_t           timeout_seconds;
@@ -55,7 +56,8 @@ typedef struct DBConfig {
 } DBConfig_t;
 
 typedef struct DBConnConfig {
-  char             host[BUF_LEN_XS];
+  char             host[BUF_LEN_SS];
+  char             name[BUF_LEN_XS];
   char             password[BUF_LEN_XS];
   char             username[BUF_LEN_XS];
   size_t           port;

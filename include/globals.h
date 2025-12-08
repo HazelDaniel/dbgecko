@@ -11,6 +11,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 
 #define BUF_LEN_XS (64)
+#define BUF_LEN_SS (128)
 #define BUF_LEN_S (256)
 #define BUF_LEN_M (512)
 #define BUF_LEN (1024)

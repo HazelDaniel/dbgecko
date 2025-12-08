@@ -345,8 +345,9 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   }
 
   snprintf((*app_config)->db->username, BUF_LEN_XS, "%s", db_con_config->username);
-  snprintf((*app_config)->db->host, BUF_LEN_XS, "%s", db_con_config->host);
+  snprintf((*app_config)->db->host, BUF_LEN_SS, "%s", db_con_config->host);
   snprintf((*app_config)->db->password, BUF_LEN_XS, "%s", db_con_config->password);
+  snprintf((*app_config)->db->name, BUF_LEN_XS, "%s", db_con_config->name);
   (*app_config)->db->port = db_con_config->port;
 
   free(db_con_config);

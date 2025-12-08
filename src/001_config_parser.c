@@ -72,6 +72,7 @@ void print_app_config(AppConfig_t *cfg) {
   printf("\t host: %s\n", cfg->db->host);
   printf("\t password: %s\n", cfg->db->password);
   printf("\t port: %zu\n", cfg->db->port);
+  printf("\t db: %s\n", cfg->db->name);
   printf("\t uri: %s\n", cfg->db->uri);
   printf("\t online: %s\n", cfg->db->online ? "true" : "false");
 
