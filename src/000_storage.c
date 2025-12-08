@@ -220,6 +220,8 @@ StorageContext_t *create_local_fs_context() {
   ctx->ops = &storage_ops_table[PTC_LOCAL];
   ctx->state = create_local_fs_state();
 
+  puts("created local fs context");
+
   return ctx;
 }
 /* ----------------------------------------------------------- */
@@ -229,6 +231,8 @@ StackStatus_t destroy_storage_context(StorageContext_t *ctx) {
 
   ctx->cleanup(ctx);
   free(ctx);
+
+  puts("destroyed storage context");
 
  return status;
 }
@@ -249,12 +253,31 @@ RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
   return ptc;
 }
 
+static StorageContext_t *context_lookup[SUPPORTED_PROTOCOL_COUNT] = {
+  [PTC_S3] = NULL,
+  [PTC_SSH] = NULL,
+  [PTC_SFTP] = NULL,
+  [PTC_LOCAL] = NULL,
+};
+
 StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc) {
   switch (ptc) {
-    case PTC_S3: return create_s3_context();
-    case PTC_SSH: return create_ssh_context();
-    case PTC_SFTP: return create_sftp_context();
-    case PTC_LOCAL: return create_local_fs_context();
+    case PTC_S3: {
+      if (!context_lookup[ptc]) context_lookup[ptc] = create_s3_context();
+      return context_lookup[ptc];
+    };
+    case PTC_SSH: {
+      if (!context_lookup[ptc]) context_lookup[ptc] = create_ssh_context();
+      return context_lookup[ptc];
+    }
+    case PTC_SFTP: {
+      if (!context_lookup[ptc]) context_lookup[ptc] = create_sftp_context();
+      return context_lookup[ptc];
+    }
+    case PTC_LOCAL: {
+      if (!context_lookup[ptc]) context_lookup[ptc] = create_local_fs_context();
+      return context_lookup[ptc];
+    }
     default: return NULL;
   }
 }
