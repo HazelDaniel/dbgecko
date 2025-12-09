@@ -334,7 +334,7 @@ StorageStatus_t local_fs__read_file(const StorageContext_t *ctx, const char *rel
     ssize_t sent = sink(sink_userdata, buffer, (size_t)r, &sstat);
 
     if (sstat != STORAGE_OK || sent < 0) {
-      set_err((const char **)err, BUF_LEN_XS, "sink error");
+      set_err((const char **)err, BUF_LEN_XS, "sink callback failed to write");
       close(fd);
 
       return sstat != STORAGE_OK ? sstat : STORAGE_READ_FAILED;
