@@ -220,8 +220,6 @@ StorageContext_t *create_local_fs_context() {
   ctx->ops = &storage_ops_table[PTC_LOCAL];
   ctx->state = create_local_fs_state();
 
-  puts("created local fs context");
-
   return ctx;
 }
 /* ----------------------------------------------------------- */
@@ -231,8 +229,6 @@ StackStatus_t destroy_storage_context(StorageContext_t *ctx) {
 
   ctx->cleanup(ctx);
   free(ctx);
-
-  puts("destroyed storage context");
 
  return status;
 }

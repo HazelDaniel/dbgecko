@@ -98,6 +98,9 @@ StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc)
 StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *path, StorageDataSource source,
   void *userdata, StorageErrorMessage_t *err);
 
+StorageStatus_t storage_read_stream(StorageContext_t *ctx, const char *src_path, StorageDataSink sink,
+  void *local_state, StorageErrorMessage_t *err);
+
 StackStatus_t destroy_storage_context(StorageContext_t *ctx);
 
 EMIT_STORAGE_OPS_DEFS(unknown)

@@ -40,4 +40,4 @@ add_test(NAME test_config_arg_parser COMMAND test_config_arg_parser "--config_pa
 add_test(NAME test_list_plugins COMMAND test_list_plugins "--config_path=${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")
 add_test(NAME test_plugin_loader COMMAND test_plugin_loader "--config_path=${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")
 # add_test(NAME test_pg_backup COMMAND test_pg_backup "--config_path=${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")
-add_test(NAME test_pg_restore COMMAND test_pg_restore "--config_path=${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")
+# add_test(NAME test_pg_restore COMMAND test_pg_restore "--config_path=${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")

@@ -34,6 +34,7 @@ typedef struct PluginTransientState {
   FILE           *restore_pipe;
   char           *buffer;
   size_t         buffer_size;
+  _Bool          eof;
 } PluginTransientState_t;
 
 /**
@@ -60,25 +61,10 @@ typedef struct PluginState {
   PluginTransientState_t   transient;
 } PluginState_t;
 
-/**
- * PgBackupStreamState_t - a transient state for pg_backup api function outside of the generic transient state
- * @plugin: a borrowed plugin resource for executing commands and storing results during backup
- * @res: the results of each command ran through @plugin
- * @data: a pointer to raw data
- * @total_bytes: the total bytes written
- * @cursor: the current position in the original data
- */
-// typedef struct PgBackupStreamState {
-//   const PluginState_t   *const plugin; // for access to persistent.db_handle.pg_conn (readonly)
-//   // PGresult           *res;
-//   const uint8_t         *data;
-//   size_t                total_bytes;
-//   size_t                cursor;
-// } PgBackupStreamState_t;
-typedef struct PgBackupStreamState {
-  FILE          *dump_pipe;
+typedef struct PgRestoreStreamState {
+  FILE          *restore_pipe;
   _Bool         eof;
-} PgBackupStreamState_t;
+} PgRestoreStreamState_t;
 
 
 PluginState_t *create_plugin_state_from_type(DBType_t db_type);
