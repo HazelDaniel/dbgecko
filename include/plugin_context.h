@@ -68,9 +68,10 @@ typedef struct PgRestoreStreamState {
 
 
 PluginState_t *create_plugin_state_from_type(DBType_t db_type);
-PluginState_t **get_plugin_state_handle();
+PluginState_t **get_plugin_state_handle(void);
 
-void reset_plugin_transient_state(PluginState_t *state);
+void reset_plugin_transient_state(void);
+void refresh_plugin_transient_state(void);
 void destroy_plugin_state();
 
 
