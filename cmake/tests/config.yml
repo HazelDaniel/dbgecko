@@ -5,7 +5,7 @@ platform:
 db:
   # type: "postgres" # driver loaded will be based on the 'type'. so, plugin path must match type
   type: "postgres" #required
-  uri: "postgresql://toughware:password@dpg-cvaggrepopd7sb3g0rfg-a.oregon-postgres.render.com/onrenderblender:5432/db" #required
+  uri: "postgresql://username:password@dpg-cvaggrepopd7sb3g0rfg-a.oregon-postgres.render.com/onrenderblender:5432/db" #required
   timeout_seconds: 30 # default 10
   # max_retries: 3
   backup_mode: "incremental" # default full
