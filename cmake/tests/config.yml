@@ -30,15 +30,17 @@ storage:
   # ssh:
   #   private_key: "/path-to-private-key"
   #   port: 22
+  #   host: "ssh_host"
   #   username: ""
   #   max_retries: 3
   #   timeout_seconds: 30
   #   verify_known_hosts: true
   local:
-    base_dir: "/home/a-dev/"
+    base_dir: "/tmp/dbgecko/backups"
   # sftp:
   #   private_key: "S30)#k00012k"
   #   port: 22
+  #   host: "sftphost"
   #   username: "sftpuser"
   #   max_retries: 3
   #   timeout_seconds: 30
