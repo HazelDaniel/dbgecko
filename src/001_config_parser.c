@@ -100,7 +100,6 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err) {
   long val = 0L;
   double val_float = 0.0f;
-  // TODO: validate the config values
 
   if (section == SECTION_DB) {
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);

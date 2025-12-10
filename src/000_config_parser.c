@@ -47,7 +47,7 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
   cfg->encryption_key_path[sizeof(cfg->encryption_key_path) - 1] = '\0';
   strncpy(cfg->remote_target, remote_target, sizeof(cfg->remote_target) - 1);
   cfg->remote_target[sizeof(cfg->remote_target) - 1] = '\0';
-
+  cfg->backend->kind = PTC_UNKNOWN;
 
   return cfg;
 }
@@ -156,11 +156,12 @@ void destroy_parser_error(ConfigParserError_t **err) {
 }
 
 void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
-  #define VALIDATE_COND_WITH_MESSAGE(cond, message) \
+  #define VALIDATE_COND_WITH_MESSAGE(str, cond, ...) \
   {\
+    message = str;\
     if (cond) { \
       *err = create_stack_error(); \
-      strcpy((*err)->message, message); \
+      snprintf((*err)->message, BUF_LEN_SS, __VA_ARGS__, message); \
       if (cfg) destroy_app_config(); \
       return; \
     } \
@@ -169,49 +170,59 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
 
   char *message = NULL;
 
-  message = "config doesn't exist!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg), message);
+  VALIDATE_COND_WITH_MESSAGE("config doesn't exist!", (!cfg), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid platform version!", (!cfg->platform->version), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid timeout seconds value for db!", (!cfg->db->timeout_seconds), "%s");
+  VALIDATE_COND_WITH_MESSAGE("backup mode invalid!", (!cfg->db->backup_mode[0] || (strcmp(cfg->db->backup_mode, "incremental") != 0 &&\
+    strcmp(cfg->db->backup_mode, "full") != 0 && strcmp(cfg->db->backup_mode, "schema-only") != 0)), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid db type!", (strcmp(cfg->db->type, DB_TYPE_STR_PG) != 0 &&\
+    strcmp(cfg->db->type, DB_TYPE_STR_MYSQL) != 0 && strcmp(cfg->db->type, DB_TYPE_STR_MONGO) != 0), "%s");
+  VALIDATE_COND_WITH_MESSAGE("backup mode invalid!", (!cfg->db->uri[0]), "%s");
+  VALIDATE_COND_WITH_MESSAGE("output path not provided!", (!cfg->storage->output_path[0]), "%s");
+  VALIDATE_COND_WITH_MESSAGE("encryption key path not provided!", (cfg->db->online && !cfg->storage->encryption_key_path[0]), "%s");
+  VALIDATE_COND_WITH_MESSAGE("remote location not provided!", (cfg->db->online && !cfg->storage->remote_target[0]), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid log level!", (!cfg->runtime->log_level), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid thread count!", (!cfg->runtime->thread_count), "%s");
+  VALIDATE_COND_WITH_MESSAGE("temporary runtime directory not provided!", (!cfg->runtime->temp_dir[0]), "%s");
+  VALIDATE_COND_WITH_MESSAGE("incompatible platform version", (cfg->platform->version < CURRENT_PLATFORM_VERSION - VERSION_SUPPORT_RANGE ||
+    cfg->platform->version > CURRENT_PLATFORM_VERSION + VERSION_SUPPORT_RANGE), "%s");
 
-  message = "invalid platform version!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->platform->version), message);
+  #define STORAGE_CFG_KEY_MISSING_CHECK(backend_, key_) \
+  {\
+    if (!cfg->storage->backend->backend.backend_.key_[0]) {\
+      *err = create_stack_error();\
+      snprintf((*err)->message, BUF_LEN_SS, "storage '" #backend_ "' backend config missing key '" #key_ "'");\
+      if (cfg) destroy_app_config();\
+      return;\
+    }\
+  }
 
-  message = "invalid timeout seconds value for db!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->db->timeout_seconds), message);
-
-  message = "backup mode invalid!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->db->backup_mode[0] || (strcmp(cfg->db->backup_mode, "incremental") != 0 &&\
-    strcmp(cfg->db->backup_mode, "full") != 0 && strcmp(cfg->db->backup_mode, "schema-only") != 0)), message);
-
-  message = "invalid db type!";
-  VALIDATE_COND_WITH_MESSAGE((strcmp(cfg->db->type, DB_TYPE_STR_PG) != 0 &&\
-    strcmp(cfg->db->type, DB_TYPE_STR_MYSQL) != 0 && strcmp(cfg->db->type, DB_TYPE_STR_MONGO) != 0), message);
-
-  message = "uri not provided!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->db->uri[0]), message);
-
-  message = "output path not provided!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->storage->output_path[0]), message);
-
-  message = "encryption key path not provided!";
-  VALIDATE_COND_WITH_MESSAGE((cfg->db->online && !cfg->storage->encryption_key_path[0]), message);
-
-  message = "remote location not provided!";
-  VALIDATE_COND_WITH_MESSAGE((cfg->db->online && !cfg->storage->remote_target[0]), message);
-
-  message = "invalid log level!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->log_level), message);
-
-  message = "invalid thread count!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->thread_count), message);
-
-  message = "temporary runtime directory not provided!";
-  VALIDATE_COND_WITH_MESSAGE((!cfg->runtime->temp_dir[0]), message);
-
-  message = "incompatible platform version";
-  VALIDATE_COND_WITH_MESSAGE((cfg->platform->version < CURRENT_PLATFORM_VERSION - VERSION_SUPPORT_RANGE ||
-    cfg->platform->version > CURRENT_PLATFORM_VERSION + VERSION_SUPPORT_RANGE), message);
+  switch (cfg->storage->backend->kind) {
+    case PTC_S3:
+      STORAGE_CFG_KEY_MISSING_CHECK(s3, endpoint); STORAGE_CFG_KEY_MISSING_CHECK(s3, region);
+      STORAGE_CFG_KEY_MISSING_CHECK(s3, access_key); STORAGE_CFG_KEY_MISSING_CHECK(s3, secret_key);
+      STORAGE_CFG_KEY_MISSING_CHECK(s3, path_style); STORAGE_CFG_KEY_MISSING_CHECK(s3, session_token);
+      break;
+    case PTC_SFTP:
+      STORAGE_CFG_KEY_MISSING_CHECK(sftp, private_key); STORAGE_CFG_KEY_MISSING_CHECK(sftp, host);
+      STORAGE_CFG_KEY_MISSING_CHECK(sftp, username);
+      break;
+    case PTC_SSH:
+      STORAGE_CFG_KEY_MISSING_CHECK(ssh, private_key); STORAGE_CFG_KEY_MISSING_CHECK(ssh, host);
+      STORAGE_CFG_KEY_MISSING_CHECK(ssh, username);
+      break;
+    case PTC_LOCAL:
+      STORAGE_CFG_KEY_MISSING_CHECK(local, base_dir);
+      break;
+    default:
+      *err = create_stack_error();
+      snprintf((*err)->message, BUF_LEN_SS, "no storage backend provided!");
+      if (cfg) destroy_app_config();
+      return;
+  }
 
   #undef VALIDATE_COND_WITH_MESSAGE
+  #undef STORAGE_CFG_KEY_MISSING_CHECK
 }
 
 DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *regex, StackErrorMessage_t *err) {

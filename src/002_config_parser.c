@@ -317,6 +317,16 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
 
   validate_app_config(*app_config, err);
 
+  if (*err) {
+    if ((*err)->message[0]) {
+      LOCAL_CLEANUP();
+      return;
+    }
+    snprintf((*err)->message, BUF_LEN_XS, "unknown error occurred while validating app config!");
+    LOCAL_CLEANUP();
+    return;
+  }
+
   #define CLEANUP_CON_CFG_PARSE_FAIL()\
   {\
     if (!db_con_config) {\
