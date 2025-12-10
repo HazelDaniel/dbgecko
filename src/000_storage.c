@@ -13,6 +13,7 @@ StackStatus_t destroy_local_ssh_state(SSHState_t *state_ssh) {
   StackStatus_t status = EXEC_SUCCESS;
 
   if (state_ssh->session) ssh_free(state_ssh->session);
+  free(state_ssh);
 
   return status;
 }
@@ -65,6 +66,7 @@ SFTPState_t *create_sftp_state() {
 
   sftp = cfg->storage->backend->backend.sftp;
 
+  // todo: read 'host' key for both ssh and sftp from config/cli
   state->parent_state = create_ssh_state(state->private_key, state->host, state->username,
     state->port, state->max_retries, state->timeout_seconds, false);
 
@@ -94,6 +96,7 @@ StackStatus_t cleanup_sftp_state (const StorageContext_t *const ctx) {
 
       sftp_free(state_sftp->session);
       free(state_sftp);
+
       return status;
     }
   }
@@ -109,8 +112,9 @@ StorageContext_t *create_sftp_context() {
   StorageOps_t *storage_ops_table = get_storage_ops_table();
 
   ctx->cleanup = cleanup_sftp_state;
-  ctx->ops = &storage_ops_table[PTC_S3];
+  ctx->ops = &storage_ops_table[PTC_SFTP];
   ctx->state = create_sftp_state();
+
   return ctx;
 }
 /* ----------------------------------------------------------- */
@@ -131,14 +135,14 @@ SSHState_t *create_ssh_state(const char *private_key, const char *host, const ch
   snprintf(state->private_key, BUF_LEN_S, "%s", private_key);
   state->session = ssh_new();
 
-  ssh_options_set(state->session, SSH_OPTIONS_ADD_IDENTITY, private_key);
-  // ssh_options_set(state->session, SSH_OPTIONS_BINDADDR, "");
-  // ssh_options_set(state->session, SSH_OPTIONS_COMPRESSION, "");
-  ssh_options_set(state->session, SSH_OPTIONS_USER, username);
-  ssh_options_set(state->session, SSH_OPTIONS_HOST, host);
-  ssh_options_set(state->session, SSH_OPTIONS_TIMEOUT, &timeout_seconds);
-  ssh_options_set(state->session, SSH_OPTIONS_PORT, &port);
-  ssh_options_set(state->session, SSH_OPTIONS_STRICTHOSTKEYCHECK, "true");
+  // ssh_options_set(state->session, SSH_OPTIONS_ADD_IDENTITY, private_key);
+  //// ssh_options_set(state->session, SSH_OPTIONS_BINDADDR, "");
+  //// ssh_options_set(state->session, SSH_OPTIONS_COMPRESSION, "");
+  // ssh_options_set(state->session, SSH_OPTIONS_USER, username);
+  // ssh_options_set(state->session, SSH_OPTIONS_HOST, host);
+  // ssh_options_set(state->session, SSH_OPTIONS_TIMEOUT, &timeout_seconds);
+  // ssh_options_set(state->session, SSH_OPTIONS_PORT, &port);
+  // ssh_options_set(state->session, SSH_OPTIONS_STRICTHOSTKEYCHECK, "true");
 
   return state;
 }
@@ -150,7 +154,6 @@ StackStatus_t cleanup_ssh_state (const StorageContext_t *const ctx) {
   if (!state_ssh) return EXEC_FAILURE;
 
   status = destroy_local_ssh_state(state_ssh);
-  free(state_ssh);
 
   return status;
 }
@@ -301,7 +304,7 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
 
   if (!ctx || !ctx->ops || !ctx->ops->write_open ||
     !ctx->ops->write_chunk || !ctx->ops->write_close || !ctx->ops->write_abort) {
-    set_err((const char **)err, BUF_LEN_XS, "Invalid storage ops");
+    set_err((const char **)err, BUF_LEN_XS, "Invalid or missing storage ops");
 
     return STORAGE_WRITE_FAILED;
   }
