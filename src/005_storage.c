@@ -130,7 +130,7 @@ StorageStatus_t local_fs__write_open(const StorageContext_t *ctx, const char *re
   }
 
   pid_t pid = getpid();
-  if (snprintf(s->tmp_path, sizeof(s->tmp_path), "%s.tmp.%d", s->final_path, (int)pid) >= (int)sizeof(s->tmp_path)) {
+  if (snprintf(s->tmp_path, sizeof(s->tmp_path), "%s.%d", s->final_path, (int)pid) >= (int)sizeof(s->tmp_path)) {
     set_err((const char **)err, BUF_LEN_XS, "tmp path too long");
     return STORAGE_WRITE_FAILED;
   }
