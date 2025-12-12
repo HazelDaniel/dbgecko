@@ -309,7 +309,7 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
     return STORAGE_WRITE_FAILED;
   }
 
-  snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", dst_path);
+  snprintf(tmp_path, sizeof(tmp_path), "%s", dst_path);
 
   status = ctx->ops->write_open(ctx, tmp_path, err);
   if (status != STORAGE_OK) return status;

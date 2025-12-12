@@ -14,10 +14,6 @@
 
 int main(int argc, char **argv)
 {
-    /*
-     * Expected CLI format:
-     *   ./test_pg_backup --db=postgres --storage=file --storage-path=/tmp/test-backup
-     */
 
     StackError_t *err = NULL;
     char *err_message = NULL;
@@ -74,8 +70,8 @@ int main(int argc, char **argv)
     /* Step 4: Obtain plugin driver instance */
     PluginRegistry_t *reg = *reg_ptr;
     PluginDriver_t *driver = reg->driver;
-    if (!driver || !driver->backup) {
-        printf("Failed to acquire plugin driver or backup function.\n");
+    if (!driver || !driver->restore) {
+        printf("Failed to acquire plugin driver or restore function.\n");
 
         destroy_plugin_registry(&err_message);
         destroy_app_config();
@@ -84,12 +80,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* Step 5: execute pg_backup */
+    /* Step 5: execute pg_restore */
     DriverErrMessage_t derr = NULL;
-    DriverStatus_t dstatus = driver->backup(cfg, &derr);
+    DriverStatus_t dstatus = driver->restore(cfg, &derr);
 
     if (dstatus != OP_SUCCESS) {
-        printf("Backup failed: %s\n", derr ? derr : "unknown");
+        printf("restore failed: %s\n", derr ? derr : "unknown");
         if (derr) free(derr);
 
         destroy_plugin_registry(&err_message);
@@ -103,7 +99,7 @@ int main(int argc, char **argv)
     destroy_app_config();
 
 
-    printf("pg_backup test PASSED.\n");
+    printf("pg_restore test PASSED.\n");
 
     return 0;
 }
