@@ -66,13 +66,14 @@ void print_app_config(AppConfig_t *cfg) {
   if (!cfg) return;
   puts("db:");
   printf("\t timeout_seconds: %li\n", cfg->db->timeout_seconds);
+  printf("\t max_retries: %li\n", cfg->db->max_retries);
   printf("\t type: %s\n", cfg->db->type);
   printf("\t backup_mode: %s\n", cfg->db->backup_mode);
   printf("\t username: %s\n", cfg->db->username);
   printf("\t host: %s\n", cfg->db->host);
   printf("\t password: %s\n", cfg->db->password);
   printf("\t port: %zu\n", cfg->db->port);
-  printf("\t db: %s\n", cfg->db->name);
+  printf("\t name: %s\n", cfg->db->name);
   printf("\t uri: %s\n", cfg->db->uri);
   printf("\t online: %s\n", cfg->db->online ? "true" : "false");
 
@@ -103,7 +104,7 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
 
   if (section == SECTION_DB) {
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
-    else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_S);
+    else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_M);
     else if (strcmp(key, "backup_mode") == 0) strncpy(cfg->db->backup_mode, value, BUF_LEN_XS);
     else if (strcmp(key, "online") == 0 ) {
       if (strcmp(value, "true") == 0) cfg->db->online = true;
@@ -119,6 +120,17 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
       }
 
       cfg->db->timeout_seconds = (int)val;
+    } else if (strcmp(key, "max_retries") == 0) {
+      val = strtol(value, NULL, 10);
+
+      if (val <= 0) {
+        err->code = CONFIG_VALIDATION_ERROR;
+        snprintf(err->message, sizeof(err->message), "db->max_retries must be > 0");
+
+        return -1;
+      }
+
+      cfg->db->max_retries = (int)val;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown db key: %s", key);

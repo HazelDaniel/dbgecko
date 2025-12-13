@@ -27,6 +27,7 @@ DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup
   strncpy(cfg->backup_mode, backup_mode, sizeof(cfg->backup_mode) - 1);
   cfg->uri[sizeof(cfg->uri) - 1] = '\0';
   cfg->timeout_seconds = timeout_seconds;
+  cfg->max_retries = DEFAULT_DB_MAX_RETRIES;
   cfg->online = false;
 
   return cfg;
@@ -173,6 +174,7 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
   VALIDATE_COND_WITH_MESSAGE("config doesn't exist!", (!cfg), "%s");
   VALIDATE_COND_WITH_MESSAGE("invalid platform version!", (!cfg->platform->version), "%s");
   VALIDATE_COND_WITH_MESSAGE("invalid timeout seconds value for db!", (!cfg->db->timeout_seconds), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid max retries value for db!", (!cfg->db->max_retries), "%s");
   VALIDATE_COND_WITH_MESSAGE("backup mode invalid!", (!cfg->db->backup_mode[0] || (strcmp(cfg->db->backup_mode, "incremental") != 0 &&\
     strcmp(cfg->db->backup_mode, "full") != 0 && strcmp(cfg->db->backup_mode, "schema-only") != 0)), "%s");
   VALIDATE_COND_WITH_MESSAGE("invalid db type!", (strcmp(cfg->db->type, DB_TYPE_STR_PG) != 0 &&\
@@ -226,13 +228,13 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
 }
 
 DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *regex, StackErrorMessage_t *err) {
+  _Bool mongo_mode = strcmp(regex, MONGO_DB_URI_REGEX) == 0;
   int n = 0;
-  size_t group_count = 5; // magic number 5 means the plugin regex has 5 groups. changing it could cause segfault
-  char *end = NULL;
+  size_t group_count = mongo_mode ? 6 : 5; // magic number (6|5) means the plugin regex has (6|5) groups. changing it could cause segfault
   int errornumber = 0, rc = -1;
   PCRE2_SIZE erroroffset;
+  char *host, *username, *port, *port_str, *password, *db, *host_port_seq, *opt_list, *end_ptr;
   DBConnConfig_t *con_config = malloc(sizeof(DBConnConfig_t));
-  char *host, *username, *port, *port_str, *password, *db, *end_ptr;
 
   #define MATCH_CLEANUP_FAIL(cond, err_msg)\
   {\
@@ -272,7 +274,20 @@ DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *reg
   if (rc > 0) {
     PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(match_data);
 
-    if (rc > 1) {
+    if (mongo_mode && rc > 1) {
+      con_config->host[0] = '\0', con_config->username[0] = '\0',
+      con_config->password[0] = '\0', con_config->name[0] = '\0';
+
+      PCRE2_SIZE start_db = ovector[10], end_db = ovector[11];
+      size_t len_db = end_db - start_db;
+
+      MATCH_CLEANUP_FAIL(len_db == 0, "connection uri missing 'db' parameter");
+
+      pcre2_match_data_free(match_data);
+      pcre2_code_free(re);
+
+			return con_config;
+    } else if (rc > 1) {
       PCRE2_SIZE start_username = ovector[2], end_username = ovector[3];
       size_t len_username = end_username - start_username;
 

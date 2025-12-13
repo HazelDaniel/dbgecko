@@ -210,6 +210,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   }
 
   add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
+  add_flag(&schema, CFG_DB_PREFIX(max_retries), ARG_TYPE_INT);
   add_flag(&schema, CFG_RUNTIME_PREFIX(log_level), ARG_TYPE_INT);
   add_flag(&schema, CFG_DB_PREFIX(online), ARG_TYPE_BOOL);
   add_flag(&schema, CFG_PLATFORM_PREFIX(version), ARG_TYPE_FLOAT);
@@ -276,6 +277,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
       case ARG_TYPE_INT:
         if (strcmp(current->key, CFG_DB_PREFIX(timeout_seconds)) == 0) {
           cfg->db->timeout_seconds = (*(size_t *)(current->value));
+        } else if (strcmp(current->key, CFG_DB_PREFIX(max_retries)) == 0) {
+          cfg->db->max_retries = (*(size_t *)(current->value));
         } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(log_level)) == 0) {
           cfg->runtime->log_level = (*(size_t *)(current->value));
         } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(thread_count)) == 0) {
@@ -292,6 +295,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
           strcpy(cfg->db->type, (char *)current->value);
         } else if (strcmp(current->key, CFG_DB_PREFIX(uri)) == 0) {
           strcpy(cfg->db->uri, (char *)current->value);
+        } else if (strcmp(current->key, CFG_DB_PREFIX(name)) == 0) {
+          strcpy(cfg->db->name, (char *)current->value);
         } else if (strcmp(current->key, CFG_DB_PREFIX(backup_mode)) == 0) {
           strcpy(cfg->db->backup_mode, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(compression)) == 0) {
@@ -354,11 +359,13 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
     CLEANUP_CON_CFG_PARSE_FAIL();
   }
 
-  snprintf((*app_config)->db->username, BUF_LEN_XS, "%s", db_con_config->username);
-  snprintf((*app_config)->db->host, BUF_LEN_SS, "%s", db_con_config->host);
-  snprintf((*app_config)->db->password, BUF_LEN_XS, "%s", db_con_config->password);
-  snprintf((*app_config)->db->name, BUF_LEN_XS, "%s", db_con_config->name);
-  (*app_config)->db->port = db_con_config->port;
+  if (strcmp((*app_config)->db->type, DB_TYPE_STR_MONGO) != 0) {
+    snprintf((*app_config)->db->username, BUF_LEN_XS, "%s", db_con_config->username);
+    snprintf((*app_config)->db->host, BUF_LEN_SS, "%s", db_con_config->host);
+    snprintf((*app_config)->db->password, BUF_LEN_XS, "%s", db_con_config->password);
+    snprintf((*app_config)->db->name, BUF_LEN_XS, "%s", db_con_config->name);
+    (*app_config)->db->port = db_con_config->port;
+  }
 
   free(db_con_config);
   destroy_parsed_argument(parsed_args);

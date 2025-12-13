@@ -1,19 +1,16 @@
 # precedence: CLI > YAML > DEFAULTS
 platform:
   version: 1.2 # plugin version and platform version compatibility will be based on the config's version field
-  # version: 3x.. #test with invalid
 db:
-  # type: "postgres" # driver loaded will be based on the 'type'. so, plugin path must match type
-  type: "postgres" #required
-  uri: "postgresql://username:password@dpg-cvaggrepopd7sb3g0rfg-a.oregon-postgres.render.com/onrenderblender:5432/db" #required
+  type: "mongodb" #required
+  uri: "mongodb://127.0.0.1/testdb" #required
   timeout_seconds: 30 # default 10
-  # max_retries: 3
+  max_retries: 5
   backup_mode: "incremental" # default full
   # backup_mode: "incremental/full/schema-only" # default full
-  # max_retries: (todo) default 3
   online: true #TODO: infer online status from url if possible - obviates the need for a separate field
 storage:
-  output_path: "/tmp/dbgecko/backups/backup" #required
+  output_path: "/tmp/dbgecko/backups/backup_mongo" #required
   compression: "gzip" #default gzip
   # s3:
     # endpoint: "https:// | http:// | minio:9000 | .."
@@ -55,5 +52,5 @@ runtime:
 #############################
 plugin:
   dir: "/home/toughware/open-source/dbgecko/assets/plugins/"
-  # path: "libdriver_pg.1.1.1.so"
+  path: "libdriver_mongo.1.1.1.so"
 # only one of the fields below needed
