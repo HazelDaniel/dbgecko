@@ -346,7 +346,7 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
 
 fail_cleanup:
   ctx->ops->write_abort(ctx, tmp_path, err);
-  return status;
+  return STORAGE_WRITE_FAILED;
 }
 
 /**

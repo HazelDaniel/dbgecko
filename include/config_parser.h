@@ -15,9 +15,10 @@
 //macro defs
 
 #define DB_URI_VOCAB_REGEX(x) x "://(\\w+):(\\w+)@(\\S+):(\\d+)/(\\w+)$"
-#define POSTGRES_DB_URI_REGEX DB_URI_VOCAB_REGEX("postgresql")
-#define MYSQL_DB_URI_REGEX DB_URI_VOCAB_REGEX("mysql")
-#define MONGO_DB_URI_REGEX DB_URI_VOCAB_REGEX("mongodb")
+#define POSTGRES_DB_URI_REGEX DB_URI_VOCAB_REGEX("^postgresql")
+#define MYSQL_DB_URI_REGEX DB_URI_VOCAB_REGEX("^mysql")
+#define MONGO_DB_URI_REGEX ("^mongodb(?:\\+srv)?://(?:(\\w+):(\\w+)@)?((?:(?:[^/[:space:]@\\s])+:\\d{1,5},?){1,256}|(?:localho\
+st(:\\d{1,5})?|127.0.0.1\\4?|[^/[:space:]:@\\s]+))/(\\w+)(\\?\\w+=\\S+(?:&\\w+=\\S+)*){0,256}$")
 
 #define DB_TYPE_STR_PG ("postgres")
 #define DB_TYPE_STR_MYSQL ("mysql")
@@ -31,27 +32,29 @@
 #define DEFAULT_DB_TYPE ("default:type")
 #define DEFAULT_DB_BACKUP_MODE ("default:backup_mode")
 #define DEFAULT_DB_TIMEOUT (1000)
+#define DEFAULT_DB_MAX_RETRIES (3)
 
 #define DEFAULT_STORAGE_OUTPUT_PATH ("default:output_path")
-#define DEFAULT_STORAGE_COMPRESSION ("default:compression")
+#define DEFAULT_STORAGE_COMPRESSION ("gzip")
 #define DEFAULT_STORAGE_ENC_KEY_PATH ("default:encryption_key_path")
 #define DEFAULT_STORAGE_REMOTE ("default:remote")
 
 #define DEFAULT_RUNTIME_LOG_LEVEL (1)
 #define DEFAULT_RUNTIME_THREAD_COUNT (1)
-#define DEFAULT_RUNTIME_TMP_DIR ("default:tmp_dir")
+#define DEFAULT_RUNTIME_TMP_DIR ("/tmp")
 
 
 typedef struct DBConfig {
   char             type[BUF_LEN_XS];
   char             backup_mode[BUF_LEN_XS];
-  char             uri[BUF_LEN_S];
+  char             uri[BUF_LEN_M];
   char             username[BUF_LEN_XS];
   char             host[BUF_LEN_SS];
   char             name[BUF_LEN_XS];
   char             password[BUF_LEN_XS];
   _Bool            online;
   size_t           timeout_seconds;
+  size_t           max_retries;
   size_t           port;
 } DBConfig_t;
 
