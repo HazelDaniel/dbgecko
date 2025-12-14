@@ -74,7 +74,6 @@ typedef enum {
   SECTION_PLATFORM,
   SECTION_PLUGIN,
   SECTION_CHILD_S3,
-  SECTION_CHILD_SSH,
   SECTION_CHILD_SFTP,
   SECTION_CHILD_LOCAL
 } config_section_t;
@@ -98,16 +97,6 @@ typedef struct S3Config {
   _Bool          use_ssl;
 } S3Config_t;
 
-typedef struct SSHConfig {
-  size_t         max_retries;
-  size_t         timeout_seconds;
-  char           username[BUF_LEN_S];
-  char           host[BUF_LEN_XS];
-  char           private_key[BUF_LEN_S];
-  _Bool          verify_known_hosts;
-  size_t         port;
-} SSHConfig_t;
-
 typedef struct SFTPConfig {
   char           private_key[BUF_LEN_S];
   char           username[BUF_LEN_S];
@@ -125,7 +114,6 @@ typedef struct {
   RemoteStorageProtocol_t         kind;
   union {
     S3Config_t            s3;
-    SSHConfig_t           ssh;
     SFTPConfig_t          sftp;
     LocalConfig_t         local;
   }                               backend;

@@ -3,7 +3,6 @@
 #include "include/storage.h"
 #include "include/config_parser.h"
 #include "include/storage_s3.h"
-#include "include/storage_ssh.h"
 #include "include/storage_sftp.h"
 #include "include/storage_local.h"
 #include "include/plugin_context.h"
@@ -131,41 +130,6 @@ SSHState_t *create_ssh_state(_Bool verify_known_hosts) {
 
   return state;
 }
-
-StackStatus_t cleanup_ssh_state (const StorageContext_t *const ctx) {
-  StackStatus_t status = EXEC_SUCCESS;
-  SSHState_t *state_ssh = (SSHState_t *)(ctx->state);
-
-  if (!state_ssh) return EXEC_FAILURE;
-
-  status = destroy_local_ssh_state(state_ssh);
-
-  return status;
-}
-
-StorageContext_t *create_ssh_context() {
-  StorageContext_t *ctx = malloc(sizeof(StorageContext_t));
-  StorageOps_t *storage_ops_table = get_storage_ops_table();
-  AppConfig_t *cfg = *get_app_config_handle();
-  SSHConfig_t ssh;
-
-  if (!cfg) return NULL;
-
-  ssh = cfg->storage->backend->backend.ssh;
-
-  ctx->cleanup = cleanup_ssh_state;
-  ctx->ops = &storage_ops_table[PTC_SSH];
-  ctx->state = create_ssh_state(ssh.verify_known_hosts);
-
-  if (!ctx->state) {
-    ctx->cleanup = NULL, ctx->ops = NULL, ctx->state = NULL;
-    free(ctx);
-
-    return NULL;
-  }
-
-  return ctx;
-}
 /* ----------------------------------------------------------- */
 
 /* -----------------------LOCAL-------------------------------- */
@@ -228,7 +192,6 @@ RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
   strcpy(uri_cp, uri);
   token = strtok(uri_cp, ":");
 
-  if (strcmp(token, SSH_PTC_TOKEN) == 0) return PTC_SSH;
   if (strcmp(token, SFTP_PTC_TOKEN) == 0) return PTC_SFTP;
   // TODO: use regex to parse "user@host:..." for ssh
   if (strcmp(token, S3_PTC_TOKEN) == 0) return  PTC_S3;
@@ -238,7 +201,6 @@ RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
 
 static StorageContext_t *context_lookup[SUPPORTED_PROTOCOL_COUNT] = {
   [PTC_S3] = NULL,
-  [PTC_SSH] = NULL,
   [PTC_SFTP] = NULL,
   [PTC_LOCAL] = NULL,
 };
@@ -249,10 +211,6 @@ StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc)
       if (!context_lookup[ptc]) context_lookup[ptc] = create_s3_context();
       return context_lookup[ptc];
     };
-    case PTC_SSH: {
-      if (!context_lookup[ptc]) context_lookup[ptc] = create_ssh_context();
-      return context_lookup[ptc];
-    }
     case PTC_SFTP: {
       if (!context_lookup[ptc]) context_lookup[ptc] = create_sftp_context();
       return context_lookup[ptc];

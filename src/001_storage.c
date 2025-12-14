@@ -10,8 +10,6 @@
 }
 
 static StorageOps_t storage_ops_table[SUPPORTED_PROTOCOL_COUNT] = {
-  [PTC_SSH] = { .write_abort = ssh__write_abort, .write_chunk = ssh__write_chunk, .write_close = ssh__write_close,
-    .mkdir = ssh__mkdir, .read_file = ssh__read_file, .delete_file = ssh__delete_file, .file_exists = ssh__file_exists },
   [PTC_SFTP] = { .write_abort = sftp__write_abort, .write_chunk = sftp__write_chunk, .write_close = sftp__write_close,
     .mkdir = sftp__mkdir, .read_file = sftp__read_file, .delete_file = sftp__delete_file, .file_exists = sftp__file_exists },
   [PTC_S3] = { .write_abort = s3__write_abort, .write_chunk = s3__write_chunk, .write_close = s3__write_close,
