@@ -10,25 +10,30 @@
 // internal library headers
 #include "globals.h"
 #include "storage.h"
-#include "storage_ssh.h"
 
 // macro defs
 
 
-typedef struct SFTPState {
-  char           private_key[BUF_LEN_S];
-  char           username[BUF_LEN_S];
-  char           host[BUF_LEN_XS];
-  size_t         port;
-  size_t         max_retries;
-  size_t         timeout_seconds;
+typedef struct SSHState {
+  sftp_file      file;
+  char           tmp_path[BUF_LEN_S];
+  char           final_path[BUF_LEN_M];
+  size_t         bytes_transferred;
+  ssh_session    session;
+} SSHState_t;
 
+typedef struct SFTPState {
   SSHState_t     *parent_state;  // an sftp state is bound to an ssh session instance
   sftp_session   session;
+  char           tmp_path[BUF_LEN_S];
+  char           final_path[BUF_LEN_M];
 } SFTPState_t;
 
 
 StorageContext_t *create_sftp_context();
+StorageContext_t *create_ssh_context();
+
+SSHState_t *create_ssh_state(_Bool verify_known_hosts);
 
 
 #endif /* ___STORAGE_SFTP_H___ */

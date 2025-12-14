@@ -3,7 +3,6 @@
 #include "include/storage.h"
 #include "include/config_parser.h"
 #include "include/storage_s3.h"
-#include "include/storage_ssh.h"
 #include "include/storage_sftp.h"
 #include "include/storage_local.h"
 #include "include/plugin_context.h"
@@ -67,17 +66,10 @@ SFTPState_t *create_sftp_state() {
   sftp = cfg->storage->backend->backend.sftp;
 
   // todo: read 'host' key for both ssh and sftp from config/cli
-  state->parent_state = create_ssh_state(state->private_key, state->host, state->username,
-    state->port, state->max_retries, state->timeout_seconds, false);
+  state->parent_state = create_ssh_state(false);
 
   if (!state->parent_state) return NULL;
 
-  state->max_retries = sftp.max_retries;
-  state->port = sftp.port;
-  state->timeout_seconds = sftp.timeout_seconds;
-  snprintf(state->username, BUF_LEN_S, "%s", sftp.username);
-  snprintf(state->host, BUF_LEN_XS, "%s", sftp.host);
-  snprintf(state->private_key, BUF_LEN_S, "%s", sftp.private_key);
   state->session = sftp_new(state->parent_state->session);
 
   return state;
@@ -120,19 +112,11 @@ StorageContext_t *create_sftp_context() {
 /* ----------------------------------------------------------- */
 
 /* -----------------------SSH--------------------------------- */
-SSHState_t *create_ssh_state(const char *private_key, const char *host, const char *username,
-  size_t port, size_t max_retries, size_t timeout_seconds, bool verify_known_hosts) {
+SSHState_t *create_ssh_state(_Bool verify_known_hosts) {
   SSHState_t *state = malloc(sizeof(SSHState_t));
 
   if (!state) return NULL;
 
-  state->max_retries = max_retries;
-  state->port = port;
-  state->verify_known_hosts = verify_known_hosts;
-  state->timeout_seconds = timeout_seconds;
-  snprintf(state->username, BUF_LEN_S, "%s", username);
-  snprintf(state->host, BUF_LEN_XS, "%s", host);
-  snprintf(state->private_key, BUF_LEN_S, "%s", private_key);
   state->session = ssh_new();
 
   // ssh_options_set(state->session, SSH_OPTIONS_ADD_IDENTITY, private_key);
@@ -145,42 +129,6 @@ SSHState_t *create_ssh_state(const char *private_key, const char *host, const ch
   // ssh_options_set(state->session, SSH_OPTIONS_STRICTHOSTKEYCHECK, "true");
 
   return state;
-}
-
-StackStatus_t cleanup_ssh_state (const StorageContext_t *const ctx) {
-  StackStatus_t status = EXEC_SUCCESS;
-  SSHState_t *state_ssh = (SSHState_t *)(ctx->state);
-
-  if (!state_ssh) return EXEC_FAILURE;
-
-  status = destroy_local_ssh_state(state_ssh);
-
-  return status;
-}
-
-StorageContext_t *create_ssh_context() {
-  StorageContext_t *ctx = malloc(sizeof(StorageContext_t));
-  StorageOps_t *storage_ops_table = get_storage_ops_table();
-  AppConfig_t *cfg = *get_app_config_handle();
-  SSHConfig_t ssh;
-
-  if (!cfg) return NULL;
-
-  ssh = cfg->storage->backend->backend.ssh;
-
-  ctx->cleanup = cleanup_ssh_state;
-  ctx->ops = &storage_ops_table[PTC_SSH];
-  ctx->state = create_ssh_state(ssh.private_key, ssh.host, ssh.username, ssh.port, ssh.max_retries,
-    ssh.timeout_seconds, ssh.verify_known_hosts);
-
-  if (!ctx->state) {
-    ctx->cleanup = NULL, ctx->ops = NULL, ctx->state = NULL;
-    free(ctx);
-
-    return NULL;
-  }
-
-  return ctx;
 }
 /* ----------------------------------------------------------- */
 
@@ -244,7 +192,6 @@ RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
   strcpy(uri_cp, uri);
   token = strtok(uri_cp, ":");
 
-  if (strcmp(token, SSH_PTC_TOKEN) == 0) return PTC_SSH;
   if (strcmp(token, SFTP_PTC_TOKEN) == 0) return PTC_SFTP;
   // TODO: use regex to parse "user@host:..." for ssh
   if (strcmp(token, S3_PTC_TOKEN) == 0) return  PTC_S3;
@@ -254,7 +201,6 @@ RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
 
 static StorageContext_t *context_lookup[SUPPORTED_PROTOCOL_COUNT] = {
   [PTC_S3] = NULL,
-  [PTC_SSH] = NULL,
   [PTC_SFTP] = NULL,
   [PTC_LOCAL] = NULL,
 };
@@ -265,10 +211,6 @@ StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc)
       if (!context_lookup[ptc]) context_lookup[ptc] = create_s3_context();
       return context_lookup[ptc];
     };
-    case PTC_SSH: {
-      if (!context_lookup[ptc]) context_lookup[ptc] = create_ssh_context();
-      return context_lookup[ptc];
-    }
     case PTC_SFTP: {
       if (!context_lookup[ptc]) context_lookup[ptc] = create_sftp_context();
       return context_lookup[ptc];
@@ -340,7 +282,7 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
     }
   }
 
-  status = ctx->ops->write_close(ctx, tmp_path, dst_path, err);
+  status = ctx->ops->write_close(ctx, err);
 
   return status;
 

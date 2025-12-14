@@ -106,10 +106,7 @@ ConfigParserStatus_t config_load_file(const char *path,
               continue;
             }
 
-            if (strcmp(sub_key, "ssh") == 0 && (!storage_key_set_count || (strcmp(sub_key, set_key) == 0)) &&
-              assign_yaml_parsed_value(SECTION_CHILD_SSH, current_key, (char *)event.data.scalar.value, out_config, local_err) != 0)
-              { CLEANUP_ASSIGN_VALUE_FAIL(); }
-            else if (strcmp(sub_key, "s3") == 0 && (!storage_key_set_count || (strcmp(sub_key, set_key) == 0)) &&
+            if (strcmp(sub_key, "s3") == 0 && (!storage_key_set_count || (strcmp(sub_key, set_key) == 0)) &&
               assign_yaml_parsed_value(SECTION_CHILD_S3, current_key, (char *)event.data.scalar.value, out_config, local_err) != 0)
               { CLEANUP_ASSIGN_VALUE_FAIL(); }
             else if (strcmp(sub_key, "sftp") == 0 && (!storage_key_set_count || (strcmp(sub_key, set_key) == 0)) &&
@@ -146,7 +143,7 @@ ConfigParserStatus_t config_load_file(const char *path,
         break;
 
       case YAML_MAPPING_END_EVENT:
-        if (parent_section == SECTION_STORAGE && (strcmp(sub_key, "ssh") == 0 || strcmp(sub_key, "sftp") == 0
+        if (parent_section == SECTION_STORAGE && (strcmp(sub_key, "sftp") == 0
           || strcmp(sub_key, "s3") == 0) || strcmp(sub_key, "local") == 0) {
           current_section = SECTION_STORAGE;
         } else current_section = SECTION_NONE;

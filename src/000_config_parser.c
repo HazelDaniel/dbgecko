@@ -113,6 +113,7 @@ AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeCo
 
 ConfigParserError_t *create_parser_error() {
   ConfigParserError_t *err = malloc(sizeof(ConfigParserError_t));
+
   err->code = CONFIG_OK;
   err->line = 0;
   err->column = 0;
@@ -208,10 +209,6 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
     case PTC_SFTP:
       STORAGE_CFG_KEY_MISSING_CHECK(sftp, private_key); STORAGE_CFG_KEY_MISSING_CHECK(sftp, host);
       STORAGE_CFG_KEY_MISSING_CHECK(sftp, username);
-      break;
-    case PTC_SSH:
-      STORAGE_CFG_KEY_MISSING_CHECK(ssh, private_key); STORAGE_CFG_KEY_MISSING_CHECK(ssh, host);
-      STORAGE_CFG_KEY_MISSING_CHECK(ssh, username);
       break;
     case PTC_LOCAL:
       STORAGE_CFG_KEY_MISSING_CHECK(local, base_dir);

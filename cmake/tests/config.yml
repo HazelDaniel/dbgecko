@@ -24,14 +24,6 @@ storage:
     # timeout_seconds: 10
     # multipart_threshold_mb: 1000
     # multipart_chunk_mb: 100
-  # ssh:
-  #   private_key: "/path-to-private-key"
-  #   port: 22
-  #   host: "ssh_host"
-  #   username: ""
-  #   max_retries: 3
-  #   timeout_seconds: 30
-  #   verify_known_hosts: true
   local:
     base_dir: "/tmp/dbgecko/backups"
   # sftp:
