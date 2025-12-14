@@ -1,7 +1,7 @@
 #include "include/storage.h"
 
 
-StorageStatus_t ssh__write_close(const StorageContext_t *ctx, const char *tmp_path_override, const char *final_path_override, StorageErrorMessage_t *err) {
+StorageStatus_t ssh__write_close(const StorageContext_t *ctx, StorageErrorMessage_t *err) {
   StorageStatus_t status = STORAGE_OK;
 
   printf("ssh writing file close aiit\n");

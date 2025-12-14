@@ -26,7 +26,7 @@ StorageStatus_t op##__mkdir(const StorageContext_t *ctx, const char *path, Stora
 StorageStatus_t op##__read_file(const StorageContext_t *ctx, const char *rel_path, StorageDataSource sink, void *local_state, StorageErrorMessage_t *err); \
 StorageStatus_t op##__write_open(const StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err); \
 StorageStatus_t op##__write_chunk(const StorageContext_t *ctx, const void *buf, size_t len, StorageErrorMessage_t *err); \
-StorageStatus_t op##__write_close(const StorageContext_t *ctx, const char *tmp_path_override, const char *final_path_override, StorageErrorMessage_t *err); \
+StorageStatus_t op##__write_close(const StorageContext_t *ctx, StorageErrorMessage_t *err); \
 StorageStatus_t op##__write_abort(const StorageContext_t *ctx, const char *tmp_path_override, StorageErrorMessage_t *err); \
 \
 _Bool op##__file_exists(const StorageContext_t *const ctx, const char *path, StorageErrorMessage_t *err);
@@ -72,7 +72,7 @@ typedef StorageDataSource StorageDataSink;
 typedef struct StorageOps {
   StorageStatus_t   (*write_open)(const StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err);
   StorageStatus_t   (*write_chunk)(const StorageContext_t *ctx, const void *buf, size_t len, StorageErrorMessage_t *err);
-  StorageStatus_t   (*write_close)(const StorageContext_t *ctx, const char *tmp_path_override, const char *final_path_override, StorageErrorMessage_t *err);
+  StorageStatus_t   (*write_close)(const StorageContext_t *ctx, StorageErrorMessage_t *err);
   StorageStatus_t   (*write_abort)(const StorageContext_t *ctx, const char *tmp_path_override, StorageErrorMessage_t *err);
   StorageStatus_t   (*read_file)(const StorageContext_t *ctx, const char *src_path, StorageDataSink sink, void *local_state, StorageErrorMessage_t *err);
   StorageStatus_t   (*delete_file)(const StorageContext_t *ctx, const char *path, StorageErrorMessage_t *err);

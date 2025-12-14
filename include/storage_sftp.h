@@ -16,15 +16,10 @@
 
 
 typedef struct SFTPState {
-  char           private_key[BUF_LEN_S];
-  char           username[BUF_LEN_S];
-  char           host[BUF_LEN_XS];
-  size_t         port;
-  size_t         max_retries;
-  size_t         timeout_seconds;
-
   SSHState_t     *parent_state;  // an sftp state is bound to an ssh session instance
   sftp_session   session;
+  char           tmp_path[BUF_LEN_S];
+  char           final_path[BUF_LEN_M];
 } SFTPState_t;
 
 

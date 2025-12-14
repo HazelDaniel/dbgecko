@@ -32,8 +32,7 @@ StorageStatus_t unknown__write_abort(const StorageContext_t *ctx, const char *tm
   UNKNOWN_IMPL_BODY(write_abort, err);
 }
 
-StorageStatus_t unknown__write_close(const StorageContext_t *ctx, const char *tmp_path_override,
-  const char *final_path_override, StorageErrorMessage_t *err) {
+StorageStatus_t unknown__write_close(const StorageContext_t *ctx, StorageErrorMessage_t *err) {
   UNKNOWN_IMPL_BODY(write_close, err);
 }
 

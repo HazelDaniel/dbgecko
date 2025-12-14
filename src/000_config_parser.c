@@ -113,6 +113,7 @@ AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeCo
 
 ConfigParserError_t *create_parser_error() {
   ConfigParserError_t *err = malloc(sizeof(ConfigParserError_t));
+
   err->code = CONFIG_OK;
   err->line = 0;
   err->column = 0;

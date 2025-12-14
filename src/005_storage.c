@@ -196,11 +196,10 @@ StorageStatus_t local_fs__write_chunk(const StorageContext_t *ctx, const void *b
 * @err: the error message to propagate (in the event of a fail)
 * return: StorageStatus_t
 */
-StorageStatus_t local_fs__write_close(const StorageContext_t *ctx, const char *tmp_path_override,
-  const char *final_path_override, StorageErrorMessage_t *err) {
+StorageStatus_t local_fs__write_close(const StorageContext_t *ctx, StorageErrorMessage_t *err) {
   // tmp_path_override and final_path_override are passed from caller (storage_write_stream)
-  if (!ctx || !ctx->state || !tmp_path_override || !final_path_override) {
-    set_err((const char **)err, BUF_LEN_XS, "invalid args to localfs_write_close");
+  if (!ctx || !ctx->state) {
+    set_err((const char **)err, BUF_LEN_XS, "invalid args to %s", __func__);
     return STORAGE_WRITE_FAILED;
   }
 
@@ -239,6 +238,7 @@ StorageStatus_t local_fs__write_close(const StorageContext_t *ctx, const char *t
   if (rename(s->tmp_path, s->final_path) != 0) {
     set_err((const char **)err, BUF_LEN_S, "rename(%s -> %s) failed: %s", s->tmp_path, s->final_path, strerror(errno));
     unlink(s->tmp_path);
+
     return STORAGE_WRITE_FAILED;
   }
 
@@ -246,6 +246,7 @@ StorageStatus_t local_fs__write_close(const StorageContext_t *ctx, const char *t
   s->bytes_transferred = 0;
   s->tmp_path[0] = '\0';
   s->final_path[0] = '\0';
+
   return STORAGE_OK;
 }
 

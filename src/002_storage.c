@@ -17,7 +17,7 @@ StorageStatus_t s3__write_chunk(const StorageContext_t *ctx, const void *buf, si
   return status;
 }
 
-StorageStatus_t s3__write_close(const StorageContext_t *ctx, const char *tmp_path_override, const char *final_path_override, StorageErrorMessage_t *err) {
+StorageStatus_t s3__write_close(const StorageContext_t *ctx, StorageErrorMessage_t *err) {
   StorageStatus_t status = STORAGE_OK;
 
   printf("s3 writing file close aiit\n");

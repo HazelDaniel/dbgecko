@@ -67,17 +67,10 @@ SFTPState_t *create_sftp_state() {
   sftp = cfg->storage->backend->backend.sftp;
 
   // todo: read 'host' key for both ssh and sftp from config/cli
-  state->parent_state = create_ssh_state(state->private_key, state->host, state->username,
-    state->port, state->max_retries, state->timeout_seconds, false);
+  state->parent_state = create_ssh_state(false);
 
   if (!state->parent_state) return NULL;
 
-  state->max_retries = sftp.max_retries;
-  state->port = sftp.port;
-  state->timeout_seconds = sftp.timeout_seconds;
-  snprintf(state->username, BUF_LEN_S, "%s", sftp.username);
-  snprintf(state->host, BUF_LEN_XS, "%s", sftp.host);
-  snprintf(state->private_key, BUF_LEN_S, "%s", sftp.private_key);
   state->session = sftp_new(state->parent_state->session);
 
   return state;
@@ -120,19 +113,11 @@ StorageContext_t *create_sftp_context() {
 /* ----------------------------------------------------------- */
 
 /* -----------------------SSH--------------------------------- */
-SSHState_t *create_ssh_state(const char *private_key, const char *host, const char *username,
-  size_t port, size_t max_retries, size_t timeout_seconds, bool verify_known_hosts) {
+SSHState_t *create_ssh_state(_Bool verify_known_hosts) {
   SSHState_t *state = malloc(sizeof(SSHState_t));
 
   if (!state) return NULL;
 
-  state->max_retries = max_retries;
-  state->port = port;
-  state->verify_known_hosts = verify_known_hosts;
-  state->timeout_seconds = timeout_seconds;
-  snprintf(state->username, BUF_LEN_S, "%s", username);
-  snprintf(state->host, BUF_LEN_XS, "%s", host);
-  snprintf(state->private_key, BUF_LEN_S, "%s", private_key);
   state->session = ssh_new();
 
   // ssh_options_set(state->session, SSH_OPTIONS_ADD_IDENTITY, private_key);
@@ -170,8 +155,7 @@ StorageContext_t *create_ssh_context() {
 
   ctx->cleanup = cleanup_ssh_state;
   ctx->ops = &storage_ops_table[PTC_SSH];
-  ctx->state = create_ssh_state(ssh.private_key, ssh.host, ssh.username, ssh.port, ssh.max_retries,
-    ssh.timeout_seconds, ssh.verify_known_hosts);
+  ctx->state = create_ssh_state(ssh.verify_known_hosts);
 
   if (!ctx->state) {
     ctx->cleanup = NULL, ctx->ops = NULL, ctx->state = NULL;
@@ -340,7 +324,7 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
     }
   }
 
-  status = ctx->ops->write_close(ctx, tmp_path, dst_path, err);
+  status = ctx->ops->write_close(ctx, err);
 
   return status;
 

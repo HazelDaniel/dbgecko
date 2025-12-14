@@ -21,12 +21,6 @@ typedef struct LocalFSState {
   int              fd;
 } LocalFSState_t;
 
-typedef struct LocalFSStreamReadState {
-  FILE             *fp;
-  size_t           total_size;
-  size_t           cursor;
-} LocalFSStreamReadState_t;
-
 
 LocalFSState_t *create_local_fs_state();
 
