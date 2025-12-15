@@ -59,7 +59,7 @@ else\
 
    SFTPState_t *s = (SFTPState_t *)ctx->state;
    AppConfig_t *cfg = *get_app_config_handle();
-   const char *base_dir = cfg->storage->backend->backend.local.base_dir;
+   const char *base_dir = cfg->storage->base_dir;
    char parent_dir[BUF_LEN_S];
 
    if (join_path(base_dir, rel_path, s->final_path, sizeof(s->final_path)) != 0) {
@@ -239,7 +239,7 @@ StorageStatus_t sftp__read_file(const StorageContext_t *ctx, const char *rel_pat
   AppConfig_t *cfg = *get_app_config_handle();
   char full[BUF_LEN_S];
   SFTPState_t *s = (SFTPState_t *)ctx->state;
-  const char *base_dir = cfg->storage->backend->backend.local.base_dir;
+  const char *base_dir = cfg->storage->base_dir;
   uint8_t buffer[DEFAULT_STREAM_BUFFER_SIZE];
   sftp_file fd;
   ssize_t r;
@@ -302,7 +302,7 @@ StorageStatus_t sftp__mkdir(const StorageContext_t *ctx, const char *rel_path, S
   char *err_buff = NULL;
   int rc, sftp_err;
 
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  base_dir = cfg->storage->base_dir;
 
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) {
     set_err((const char **)err, BUF_LEN_XS, "path too long");
@@ -335,7 +335,7 @@ StorageStatus_t sftp__delete_file(const StorageContext_t *ctx, const char *rel_p
   char *err_buf = NULL;
   int sftp_err;
 
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  base_dir = cfg->storage->base_dir;
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) {
     set_err((const char **)err, BUF_LEN_XS, "path too long");
 
@@ -365,7 +365,7 @@ _Bool sftp__file_exists(const StorageContext_t *const ctx, const char *rel_path,
   char full[BUF_LEN_S], *base_dir = NULL;
   sftp_attributes st;
 
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  base_dir = cfg->storage->base_dir;
 
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) return false;
   if (!(st = sftp_stat(s->session, full))) return false;

@@ -109,7 +109,7 @@ StorageStatus_t local_fs__write_open(const StorageContext_t *ctx, const char *re
   char parent_dir[BUF_LEN_S], *base_dir = NULL;
   AppConfig_t *cfg = *get_app_config_handle();
 
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  base_dir = cfg->storage->base_dir;
 
   if (join_path(base_dir, rel_path, s->final_path, sizeof(s->final_path)) != 0) {
     set_err((const char **)err, BUF_LEN_XS, "path too long");
@@ -302,7 +302,7 @@ StorageStatus_t local_fs__read_file(const StorageContext_t *ctx, const char *rel
 
   AppConfig_t *cfg = *get_app_config_handle();
   char full[BUF_LEN_S];
-  const char *base_dir = cfg->storage->backend->backend.local.base_dir;
+  const char *base_dir = cfg->storage->base_dir;
   uint8_t buffer[DEFAULT_STREAM_BUFFER_SIZE];
   int fd;
   ssize_t r;
@@ -364,7 +364,7 @@ StorageStatus_t local_fs__mkdir(const StorageContext_t *ctx, const char *rel_pat
   char full[BUF_LEN_S], *base_dir = NULL;
   AppConfig_t *cfg = *get_app_config_handle();
 
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  base_dir = cfg->storage->base_dir;
 
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) {
     set_err((const char **)err, BUF_LEN_XS, "path too long");
@@ -388,7 +388,7 @@ StorageStatus_t local_fs__delete_file(const StorageContext_t *ctx, const char *r
   char full[BUF_LEN_S], *base_dir = NULL;
   AppConfig_t *cfg = *get_app_config_handle();
 
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+  base_dir = cfg->storage->base_dir;
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) {
     set_err((const char **)err, BUF_LEN_XS, "path too long");
     return STORAGE_FILE_NOT_FOUND;
@@ -408,10 +408,10 @@ _Bool local_fs__file_exists(const StorageContext_t *const ctx, const char *rel_p
   }
 
   AppConfig_t *cfg = *get_app_config_handle();
-
   const LocalFSState_t *s = (const LocalFSState_t *)ctx->state;
   char full[BUF_LEN_S], *base_dir = NULL;
-  base_dir = cfg->storage->backend->backend.local.base_dir;
+
+  base_dir = cfg->storage->base_dir;
   if (join_path(base_dir, rel_path, full, sizeof(full)) != 0) {
     return false;
   }
