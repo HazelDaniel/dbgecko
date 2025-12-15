@@ -11,7 +11,7 @@
 
 static StorageOps_t storage_ops_table[SUPPORTED_PROTOCOL_COUNT] = {
   [PTC_SFTP] = { .write_abort = sftp__write_abort, .write_chunk = sftp__write_chunk, .write_close = sftp__write_close,
-    .mkdir = sftp__mkdir, .read_file = sftp__read_file, .delete_file = sftp__delete_file, .file_exists = sftp__file_exists },
+    .write_open = sftp__write_open, .mkdir = sftp__mkdir, .read_file = sftp__read_file, .delete_file = sftp__delete_file, .file_exists = sftp__file_exists },
   [PTC_S3] = { .write_abort = s3__write_abort, .write_chunk = s3__write_chunk, .write_close = s3__write_close,
     .mkdir = s3__mkdir, .read_file = s3__read_file, .delete_file = s3__delete_file, .file_exists = s3__file_exists },
   [PTC_LOCAL] = { .write_abort = local_fs__write_abort, .write_chunk = local_fs__write_chunk,

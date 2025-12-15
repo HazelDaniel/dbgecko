@@ -224,6 +224,7 @@ StorageStatus_t local_fs__write_close(const StorageContext_t *ctx, StorageErrorM
 
       return STORAGE_WRITE_FAILED;
     }
+
     s->fd = -1;
   }
 

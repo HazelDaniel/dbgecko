@@ -17,6 +17,8 @@
 #define BUF_LEN (1024)
 #define BUF_LEN_L (4096)
 
+#define MAX_BUF_SIZE (BUF_LEN_L * BUF_LEN_L)
+
 #define CFG_STORAGE_PREFIX(x) ("storage_"#x)
 #define CFG_PLATFORM_PREFIX(x) ("platform_"#x)
 #define CFG_PLUGIN_PREFIX(x) ("plugin_"#x)
@@ -59,6 +61,7 @@ int join_path(const char *base, const char *rel, char *out, size_t outlen);
 
 void set_err(const char **err, size_t size, const char *fmt, ...);
 void destroy_stack_error(StackError_t *err);
+char *read_file_contents(const char *path);
 
 
 #endif /* ___GLOBALS_H___ */
