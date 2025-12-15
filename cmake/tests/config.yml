@@ -10,8 +10,9 @@ db:
   # backup_mode: "incremental/full/schema-only" # default full
   online: true #TODO: infer online status from url if possible - obviates the need for a separate field
 storage:
-  output_path: "/tmp/dbgecko/backups/backup_mongo" #required
+  output_path: "/tmp/dbgecko/backups/backup_mongo" #required #todo: change to output_name
   compression: "gzip" #default gzip
+  # base_dir: "/tmp/dbgecko/backups" #todo: base_dir should go here
   # s3:
     # endpoint: "https:// | http:// | minio:9000 | .."
     # region: "us-east1"
@@ -24,17 +25,17 @@ storage:
     # timeout_seconds: 10
     # multipart_threshold_mb: 1000
     # multipart_chunk_mb: 100
-  local:
-    base_dir: "/tmp/dbgecko/backups"
-  # sftp:
-  #   private_key: "S30)#k00012k"
-  #   port: 22
-  #   host: "sftphost"
-  #   username: "sftpuser"
-  #   max_retries: 3
-  #   timeout_seconds: 30
+  # local:
+  #   base_dir: "/tmp/dbgecko/backups"
+  sftp:
+    private_key: "/home/toughware/.ssh/server/id_ed25519"
+    port: 22
+    host: "xxx.x.x.xx.xxx"
+    username: "toughware"
+    password: "xxxxxxxx"
+    max_retries: 3
+    timeout_seconds: 30
   encryption_key_path: "/home/user/.keys/backup.key" # (required) for secure connection
-  remote_target: "ssh:// | file:///tmp" # remote location
 runtime:
   log_level: 2
   thread_count: 4
@@ -45,4 +46,6 @@ runtime:
 plugin:
   dir: "/home/toughware/open-source/dbgecko/assets/plugins/"
   path: "libdriver_mongo.1.1.1.so"
-# only one of the fields below needed
+environment:
+  USER: ""
+  HOME: ""

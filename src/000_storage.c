@@ -1,4 +1,7 @@
+#include <libssh/libssh.h>
+#include <libssh/sftp.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include "include/storage.h"
 #include "include/config_parser.h"
@@ -7,15 +10,6 @@
 #include "include/storage_local.h"
 #include "include/plugin_context.h"
 
-
-StackStatus_t destroy_local_ssh_state(SSHState_t *state_ssh) {
-  StackStatus_t status = EXEC_SUCCESS;
-
-  if (state_ssh->session) ssh_free(state_ssh->session);
-  free(state_ssh);
-
-  return status;
-}
 
 /* -----------------------S3-------------------------------- */
 S3State_t *create_s3_state() {
@@ -49,6 +43,7 @@ StorageContext_t *create_s3_context() {
   ctx->cleanup = cleanup_s3_state;
   ctx->ops = &storage_ops_table[PTC_S3];
   ctx->state = create_s3_state();
+  ctx->setup = NULL;
 
   return ctx;
 }
@@ -59,18 +54,75 @@ SFTPState_t *create_sftp_state() {
   SFTPState_t *state = malloc(sizeof(SFTPState_t));
   AppConfig_t *cfg = *get_app_config_handle();
   SFTPConfig_t sftp;
+  int rc;
 
   if (!state) return NULL;
   if (!cfg) return NULL;
 
   sftp = cfg->storage->backend->backend.sftp;
 
-  // todo: read 'host' key for both ssh and sftp from config/cli
-  state->parent_state = create_ssh_state(false);
+  state->parent_state = ssh_new();
+  state->byte_transferred = 0;
+  state->file = NULL;
 
-  if (!state->parent_state) return NULL;
+  memset(state->final_path, 0, sizeof(state->final_path));
+  memset(state->tmp_path, 0, sizeof(state->tmp_path));
 
-  state->session = sftp_new(state->parent_state->session);
+  if (ssh_options_set(state->parent_state, SSH_OPTIONS_IDENTITY, sftp.private_key) != SSH_OK ||
+    ssh_options_set(state->parent_state, SSH_OPTIONS_USER, sftp.username) != SSH_OK ||
+    ssh_options_set(state->parent_state, SSH_OPTIONS_HOST, sftp.host) != SSH_OK ||
+    ssh_options_set(state->parent_state, SSH_OPTIONS_TIMEOUT, &sftp.timeout_seconds) != SSH_OK ||
+    ssh_options_set(state->parent_state, SSH_OPTIONS_PORT, &sftp.port) != SSH_OK) {
+    ////TODO: ssh_options_set(state->parent_state, SSH_OPTIONS_COMPRESSION, "");
+    if (state->parent_state) ssh_free(state->parent_state);
+    free(state);
+
+    return NULL;
+  }
+
+  if (!state->parent_state) {
+    free(state);
+
+    return NULL;
+  }
+
+  if (ssh_connect(state->parent_state) != SSH_OK) {
+    ssh_free(state->parent_state), free(state);
+
+    return NULL;
+  }
+
+  rc = ssh_userauth_publickey_auto(state->parent_state, NULL, NULL);
+
+  if (rc != SSH_AUTH_SUCCESS) {
+    rc = ssh_userauth_password(state->parent_state, sftp.username, sftp.password);
+    if (rc != SSH_AUTH_SUCCESS) {
+
+      ssh_disconnect(state->parent_state);
+      ssh_free(state->parent_state), free(state);
+      return NULL;
+    }
+  }
+
+  state->session = sftp_new(state->parent_state);
+
+  rc = sftp_init(state->session);
+
+  if (rc != SSH_OK) {
+    sftp_free(state->session);
+    ssh_disconnect(state->parent_state);
+    ssh_free(state->parent_state); free(state);
+
+    return NULL;
+  }
+
+  if (!state->session) {
+    ssh_free(state->parent_state), free(state);
+    return NULL;
+  }
+
+  // printf("------------sizeof parent state is %zu\t while size of session is %zu\n", sizeof(*(state)), sizeof((ssh_session)*(state->parent_state)));
+  // puts("state successfully created");
 
   return state;
 }
@@ -81,19 +133,17 @@ StackStatus_t cleanup_sftp_state (const StorageContext_t *const ctx) {
 
   if (!state_sftp) return EXEC_FAILURE;
 
+  sftp_free(state_sftp->session);
+
   if (state_sftp->parent_state) {
-    status = destroy_local_ssh_state(state_sftp->parent_state);
-
-    if (status != EXEC_SUCCESS) {
-
-      sftp_free(state_sftp->session);
-      free(state_sftp);
-
-      return status;
+    if (ssh_is_connected(state_sftp->parent_state)) {
+      ssh_disconnect(state_sftp->parent_state);
     }
+    ssh_free(state_sftp->parent_state);
   }
 
-  sftp_free(state_sftp->session);
+  if (state_sftp->file) sftp_close(state_sftp->file);
+
   free(state_sftp);
 
   return status;
@@ -106,29 +156,9 @@ StorageContext_t *create_sftp_context() {
   ctx->cleanup = cleanup_sftp_state;
   ctx->ops = &storage_ops_table[PTC_SFTP];
   ctx->state = create_sftp_state();
+  ctx->setup = NULL;
 
   return ctx;
-}
-/* ----------------------------------------------------------- */
-
-/* -----------------------SSH--------------------------------- */
-SSHState_t *create_ssh_state(_Bool verify_known_hosts) {
-  SSHState_t *state = malloc(sizeof(SSHState_t));
-
-  if (!state) return NULL;
-
-  state->session = ssh_new();
-
-  // ssh_options_set(state->session, SSH_OPTIONS_ADD_IDENTITY, private_key);
-  //// ssh_options_set(state->session, SSH_OPTIONS_BINDADDR, "");
-  //// ssh_options_set(state->session, SSH_OPTIONS_COMPRESSION, "");
-  // ssh_options_set(state->session, SSH_OPTIONS_USER, username);
-  // ssh_options_set(state->session, SSH_OPTIONS_HOST, host);
-  // ssh_options_set(state->session, SSH_OPTIONS_TIMEOUT, &timeout_seconds);
-  // ssh_options_set(state->session, SSH_OPTIONS_PORT, &port);
-  // ssh_options_set(state->session, SSH_OPTIONS_STRICTHOSTKEYCHECK, "true");
-
-  return state;
 }
 /* ----------------------------------------------------------- */
 
@@ -170,6 +200,7 @@ StorageContext_t *create_local_fs_context() {
   ctx->cleanup = cleanup_local_fs_state;
   ctx->ops = &storage_ops_table[PTC_LOCAL];
   ctx->state = create_local_fs_state();
+  ctx->setup = NULL;
 
   return ctx;
 }

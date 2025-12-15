@@ -105,3 +105,55 @@ void set_err(const char **err, size_t size, const char *fmt, ...) {
   vsnprintf((char *)*err, size, fmt, ap);
   va_end(ap);
 }
+
+/**
+ * read_file_contents - read a file's content (using standard functions) given an absolute path
+ * @path: the char pointer whose content is the absolute path
+ * Return: the contents on success, NULL on failure
+ *
+ * ~Note~:
+ *        Not suitable for extremely large files (long / single allocation)
+ *        Assumes a regular file (not a pipe, procfs, etc.).
+ */
+char *read_file_contents(const char *path) {
+  FILE *f = fopen(path, "rb");
+  char *buffer = NULL;
+  size_t read = 0;
+  ssize_t size;
+
+  if (!f) {
+    return NULL;
+  }
+
+  if (fseek(f, 0, SEEK_END) != 0) {
+    fclose(f);
+    return NULL;
+  }
+
+  size = ftell(f);
+
+  if (size < 0 || size >= MAX_BUF_SIZE) {
+    fclose(f);
+    return NULL;
+  }
+
+  rewind(f);
+  buffer = malloc((size_t)size + 1);
+
+  if (!buffer) {
+    fclose(f);
+    return NULL;
+  }
+
+  read = fread(buffer, 1, (size_t)size, f);
+  fclose(f);
+
+  if (read != (size_t)size) {
+    free(buffer);
+    return NULL;
+  }
+
+  buffer[size] = '\0';
+
+  return buffer;
+}
