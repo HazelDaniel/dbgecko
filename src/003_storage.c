@@ -14,6 +14,11 @@
 #include "include/plugin_context.h"
 #include "include/storage.h"
 
+// fixing ubsan error (for some reason, it couldn't detect the O_DIRECTORY exported from fcntl.h)
+#ifndef O_DIRECTORY
+#define O_DIRECTORY (0x10000)
+#endif
+
 #define set_error_from_sftp(s, err)\
 {\
   char *err_buf = NULL;\
