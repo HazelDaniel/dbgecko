@@ -34,7 +34,7 @@ st(:\\d{1,5})?|127.0.0.1\\4?|[^/[:space:]:@\\s]+))/(\\w+)(\\?\\w+=\\S+(?:&\\w+=\
 #define DEFAULT_DB_TIMEOUT (1000)
 #define DEFAULT_DB_MAX_RETRIES (3)
 
-#define DEFAULT_STORAGE_OUTPUT_PATH ("default:output_path")
+#define DEFAULT_STORAGE_OUTPUT_NAME ("default:output_name")
 #define DEFAULT_STORAGE_COMPRESSION ("gzip")
 #define DEFAULT_STORAGE_ENC_KEY_PATH ("default:encryption_key_path")
 #define DEFAULT_STORAGE_REMOTE ("default:remote")
@@ -64,6 +64,7 @@ typedef struct DBConnConfig {
   char             password[BUF_LEN_XS];
   char             username[BUF_LEN_XS];
   size_t           port;
+  _Bool            online;
 } DBConnConfig_t;
 
 typedef enum {
@@ -108,7 +109,6 @@ typedef struct SFTPConfig {
 } SFTPConfig_t;
 
 typedef struct LocalConfig {
-  char           base_dir[BUF_LEN_S];
 } LocalConfig_t;
 
 typedef struct {
@@ -121,8 +121,9 @@ typedef struct {
 } StorageBackendConfig_t;
 
 typedef struct storageConfig {
-  char                      output_path[BUF_LEN_S];
+  char                      output_name[BUF_LEN_S];
   char                      compression[BUF_LEN_XS];
+  char                      base_dir[BUF_LEN_S];
   char                      encryption_key_path[BUF_LEN_S];
   char                      remote_target[BUF_LEN_S];
   StorageBackendConfig_t    *backend;
@@ -178,9 +179,9 @@ typedef struct ConfigParserError {
  **/
 ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
 
-DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds, _Bool online);
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds);
 
-StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target);
+StorageConfig_t *init_storage_config(const char *output_name, const char *compression, const char *encryption_key_path, const char *remote_target);
 
 RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 

@@ -47,7 +47,7 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
     printf("%smax_retries: %zu, ", " ", bck->backend.sftp.max_retries);
     printf("%sprivate_key: %s, ", " ", bck->backend.sftp.private_key);
   } else if (bck->kind == PTC_LOCAL) {
-    printf("%sbase directory: %s, ", " ", bck->backend.local.base_dir);
+    // printf("%sbase directory: %s, ", " ", bck->backend.local.base_dir);
   }
   printf("}\n");
 }
@@ -75,8 +75,9 @@ void print_app_config(AppConfig_t *cfg) {
   puts("storage:");
   printf("\t compression: %s\n", cfg->storage->compression);
   printf("\t key_path: %s\n", cfg->storage->encryption_key_path);
-  printf("\t output_path: %s\n", cfg->storage->output_path);
+  printf("\t output_name: %s\n", cfg->storage->output_name);
   printf("\t remote_target: %s\n", cfg->storage->remote_target);
+  printf("\t base_dir: %s\n", cfg->storage->base_dir);
   print_storage_backend_config(cfg->storage->backend);
 
   puts("platform:");
@@ -96,10 +97,7 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
     else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_M);
     else if (strcmp(key, "backup_mode") == 0) strncpy(cfg->db->backup_mode, value, BUF_LEN_XS);
-    else if (strcmp(key, "online") == 0 ) {
-      if (strcmp(value, "true") == 0) cfg->db->online = true;
-      else if (strcmp(value, "false") == 0) cfg->db->online = false;
-    } else if (strcmp(key, "timeout_seconds") == 0) {
+    else if (strcmp(key, "timeout_seconds") == 0) {
       val = strtol(value, NULL, 10);
 
       if (val <= 0) {
@@ -128,8 +126,9 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
       return -1;
     }
   } else if (section == SECTION_STORAGE) {
-    if (strcmp(key, "output_path") == 0) strncpy(cfg->storage->output_path, value, BUF_LEN_S);
+    if (strcmp(key, "output_name") == 0) strncpy(cfg->storage->output_name, value, BUF_LEN_S);
     else if (strcmp(key, "compression") == 0) strncpy(cfg->storage->compression, value, BUF_LEN_XS);
+    else if (strcmp(key, "base_dir") == 0) strncpy(cfg->storage->base_dir, value, BUF_LEN_S);
     else if (strcmp(key, "remote_target") == 0) strncpy(cfg->storage->remote_target, value, BUF_LEN_XS);
     else if (strcmp(key, "encryption_key_path") == 0) strncpy(cfg->storage->encryption_key_path, value, BUF_LEN_S);
     else {
@@ -243,14 +242,8 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
     }
   } else if (section == SECTION_CHILD_LOCAL) {
     cfg->storage->backend->kind = PTC_LOCAL;
-    if (strcmp(key, "base_dir") == 0) {
-      strncpy(cfg->storage->backend->backend.local.base_dir, value, BUF_LEN_S);
-    } else {
-      err->code = CONFIG_VALIDATION_ERROR;
-      snprintf(err->message, sizeof(err->message), "Unknown filesystem configuration key for storage: %s", key);
-
-      return -1;
-    }
+  } else {
+    cfg->storage->backend->kind = PTC_LOCAL; // we assume that the default protocol is local
   }
 
   return 0;

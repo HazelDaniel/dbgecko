@@ -17,7 +17,7 @@ void set_app_config(AppConfig_t *cfg) {
   *cfg_ptr = cfg;
 }
 
-DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds, _Bool online) {
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 
   if (!cfg) return NULL;
@@ -33,15 +33,15 @@ DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup
   return cfg;
 }
 
-StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target) {
+StorageConfig_t *init_storage_config(const char *output_name, const char *compression, const char *encryption_key_path, const char *remote_target) {
   StorageConfig_t *cfg = malloc(sizeof(StorageConfig_t));
 
   if (!cfg) return NULL;
   cfg->backend = malloc(sizeof(StorageBackendConfig_t));
   if (!cfg->backend) return NULL;
 
-  strncpy(cfg->output_path, output_path, sizeof(cfg->output_path) - 1);
-  cfg->output_path[sizeof(cfg->output_path) - 1] = '\0';
+  strncpy(cfg->output_name, output_name, sizeof(cfg->output_name) - 1);
+  cfg->output_name[sizeof(cfg->output_name) - 1] = '\0';
   strncpy(cfg->compression, compression, sizeof(cfg->compression) - 1);
   cfg->compression[sizeof(cfg->compression) - 1] = '\0';
   strncpy(cfg->encryption_key_path, encryption_key_path, sizeof(cfg->encryption_key_path) - 1);
@@ -181,9 +181,9 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
   VALIDATE_COND_WITH_MESSAGE("invalid db type!", (strcmp(cfg->db->type, DB_TYPE_STR_PG) != 0 &&\
     strcmp(cfg->db->type, DB_TYPE_STR_MYSQL) != 0 && strcmp(cfg->db->type, DB_TYPE_STR_MONGO) != 0), "%s");
   VALIDATE_COND_WITH_MESSAGE("backup mode invalid!", (!cfg->db->uri[0]), "%s");
-  VALIDATE_COND_WITH_MESSAGE("output path not provided!", (!cfg->storage->output_path[0]), "%s");
-  VALIDATE_COND_WITH_MESSAGE("encryption key path not provided!", (cfg->db->online && !cfg->storage->encryption_key_path[0]), "%s");
-  VALIDATE_COND_WITH_MESSAGE("remote location not provided!", (cfg->db->online && !cfg->storage->remote_target[0]), "%s");
+  VALIDATE_COND_WITH_MESSAGE("output name not provided!", (!cfg->storage->output_name[0]), "%s");
+  // VALIDATE_COND_WITH_MESSAGE("encryption key path not provided!", (cfg->db->online && !cfg->storage->encryption_key_path[0]), "%s");
+  // VALIDATE_COND_WITH_MESSAGE("remote location not provided!", (cfg->db->online && !cfg->storage->remote_target[0]), "%s");
   VALIDATE_COND_WITH_MESSAGE("invalid log level!", (!cfg->runtime->log_level), "%s");
   VALIDATE_COND_WITH_MESSAGE("invalid thread count!", (!cfg->runtime->thread_count), "%s");
   VALIDATE_COND_WITH_MESSAGE("temporary runtime directory not provided!", (!cfg->runtime->temp_dir[0]), "%s");
@@ -211,7 +211,6 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
       STORAGE_CFG_KEY_MISSING_CHECK(sftp, username);
       break;
     case PTC_LOCAL:
-      STORAGE_CFG_KEY_MISSING_CHECK(local, base_dir);
       break;
     default:
       *err = create_stack_error();
@@ -267,6 +266,7 @@ DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *reg
   pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(re, NULL);
 
   rc = pcre2_match(re, (PCRE2_SPTR)uri, strlen(uri), 0, 0, match_data, NULL);
+  con_config->online = true;
 
   if (rc > 0) {
     PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(match_data);
@@ -279,6 +279,17 @@ DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *reg
       size_t len_db = end_db - start_db;
 
       MATCH_CLEANUP_FAIL(len_db == 0, "connection uri missing 'db' parameter");
+
+      PCRE2_SIZE start_host_and_port = ovector[6], end_host_and_port = ovector[7];
+      size_t len_host_and_port = end_host_and_port - start_host_and_port;
+
+      host_port_seq = (char *)(uri + start_host_and_port);
+      memcpy(con_config->host, host_port_seq, len_host_and_port);
+      con_config->host[len_host_and_port] = '\0';
+
+      if (strcmp(con_config->host, "127.0.0.1") == 0 || strcmp(con_config->host, "localhost") == 0) {
+        con_config->online = false;
+      }
 
       pcre2_match_data_free(match_data);
       pcre2_code_free(re);
@@ -332,6 +343,9 @@ DBConnConfig_t *extract_db_conn_config_from_uri(const char *uri, const char *reg
 
       pcre2_match_data_free(match_data);
       pcre2_code_free(re);
+
+      if (strcmp(con_config->host, "127.0.0.1") == 0 || strcmp(con_config->host, "localhost") == 0)
+        con_config->online = false;
 
       return con_config;
     }

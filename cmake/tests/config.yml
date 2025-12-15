@@ -8,11 +8,10 @@ db:
   max_retries: 5
   backup_mode: "incremental" # default full
   # backup_mode: "incremental/full/schema-only" # default full
-  online: true #TODO: infer online status from url if possible - obviates the need for a separate field
 storage:
-  output_path: "/tmp/dbgecko/backups/backup_mongo" #required #todo: change to output_name
+  output_name: "backup_mongo"
   compression: "gzip" #default gzip
-  # base_dir: "/tmp/dbgecko/backups" #todo: base_dir should go here
+  base_dir: "/tmp/dbgecko/backups"
   # s3:
     # endpoint: "https:// | http:// | minio:9000 | .."
     # region: "us-east1"
@@ -40,7 +39,6 @@ runtime:
   log_level: 2
   thread_count: 4
   tmp_dir: "/home/user/dirs/document/dbgecko/directory/www/xyz/.open/dirs/"
-  # TODO: add validation for the values of both the config and the cli args
   # arbitrary: "" #testing with unknown keys
 #############################
 plugin:

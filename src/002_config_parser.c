@@ -178,8 +178,8 @@ ConfigParserStatus_t config_load_file(const char *path,
 
 void merge_configs(int argc, char **argv, StackError_t **err) {
   DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
-    DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT, true);
-  StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
+    DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT);
+  StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_NAME,
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
     DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
@@ -300,8 +300,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
           strcpy(cfg->storage->compression, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {
           strcpy(cfg->storage->remote_target, (char *)current->value);
-        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(output_path)) == 0) {
-          strcpy(cfg->storage->output_path, (char *)current->value);
+        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(output_name)) == 0) {
+          strcpy(cfg->storage->output_name, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(encryption_key_path)) == 0) {
           strcpy(cfg->storage->encryption_key_path, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {
@@ -361,8 +361,11 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
     snprintf((*app_config)->db->host, BUF_LEN_SS, "%s", db_con_config->host);
     snprintf((*app_config)->db->password, BUF_LEN_XS, "%s", db_con_config->password);
     snprintf((*app_config)->db->name, BUF_LEN_XS, "%s", db_con_config->name);
+
     (*app_config)->db->port = db_con_config->port;
   }
+
+  (*app_config)->db->online = db_con_config->online;
 
   free(db_con_config);
   destroy_parsed_argument(parsed_args);
