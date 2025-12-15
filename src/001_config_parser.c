@@ -43,6 +43,7 @@ void print_storage_backend_config(StorageBackendConfig_t *bck) {
     printf("%smultipart_chunk_mb: %zu, ", " ", bck->backend.s3.multipart_chunk_mb);
   } else if (bck->kind == PTC_SFTP) {
     printf("%susername: %s, ", " ", bck->backend.sftp.username);
+    printf("%spassword: %s, ", " ", bck->backend.sftp.password);
     printf("%sport: %zu, ", " ", bck->backend.sftp.port);
     printf("%shost: %s, ", " ", bck->backend.sftp.host);
     printf("%stimeout_seconds: %zu, ", " ", bck->backend.sftp.timeout_seconds);
@@ -269,6 +270,8 @@ int assign_yaml_parsed_value(config_section_t section, const char *key,
       cfg->storage->backend->backend.sftp.timeout_seconds = (size_t)val;
     } else if (strcmp(key, "username") == 0) {
       strncpy(cfg->storage->backend->backend.sftp.username, value, BUF_LEN_S);
+    } else if (strcmp(key, "password") == 0) {
+      strncpy(cfg->storage->backend->backend.sftp.password, value, BUF_LEN_SS);
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown sftp configuration key for storage: %s", key);

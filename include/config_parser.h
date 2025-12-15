@@ -111,6 +111,7 @@ typedef struct SSHConfig {
 typedef struct SFTPConfig {
   char           private_key[BUF_LEN_S];
   char           username[BUF_LEN_S];
+  char           password[BUF_LEN_SS];
   char           host[BUF_LEN_XS];
   size_t         port;
   size_t         max_retries;
