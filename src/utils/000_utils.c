@@ -119,7 +119,7 @@ char *read_file_contents(const char *path) {
   FILE *f = fopen(path, "rb");
   char *buffer = NULL;
   size_t read = 0;
-  ssize_t size;
+  long long size;
 
   if (!f) {
     return NULL;
