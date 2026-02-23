@@ -15,7 +15,7 @@ storage:
   s3:
     region: "us-east1"
     access_key: "toughware"
-    secret_key: "hazel999"
+    secret_key: "xxxxxx"
     use_ssl: false
     endpoint: "http://192.168.69.185:9000"
 ####### optional

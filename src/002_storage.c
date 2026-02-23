@@ -294,6 +294,21 @@ static int s3_get_body_cb(struct aws_s3_meta_request *req, const struct aws_byte
 static void s3_get_finished(struct aws_s3_meta_request *req, const struct aws_s3_meta_request_result *result, void *user_data) {
   S3ReadState_t *st = user_data;
 
+  if (result->error_code != AWS_ERROR_SUCCESS) {
+    fprintf(stderr, "[dbgecko] s3 GET finished with error %d: %s (%s)\n",
+      result->error_code,
+      aws_error_name(result->error_code),
+      aws_error_debug_str(result->error_code));
+    if (result->response_status) {
+      fprintf(stderr, "[dbgecko] HTTP status: %d\n", result->response_status);
+    }
+    if (result->error_response_body && result->error_response_body->len > 0) {
+      fprintf(stderr, "[dbgecko] Response body: %.*s\n",
+        (int)result->error_response_body->len,
+        (const char *)result->error_response_body->buffer);
+    }
+  }
+
   aws_mutex_lock(&st->mutex);
 
   st->error_code = result->error_code;
@@ -333,10 +348,14 @@ StorageStatus_t s3__read_file(const StorageContext_t *ctx, const char *rel_path,
   aws_mutex_init(&st.mutex);
   aws_condition_variable_init(&st.cv);
 
+  AppConfig_t *cfg = *get_app_config_handle();
+  char path_buf[1024];
+  snprintf(path_buf, sizeof(path_buf), "/%s/%s", cfg->storage->base_dir, rel_path);
+
   struct aws_http_message *msg = aws_http_message_new_request(alloc);
   rc = aws_http_message_set_request_method(msg, aws_http_method_get);
   assert(rc == AWS_OP_SUCCESS);
-  rc = aws_http_message_set_request_path(msg, aws_byte_cursor_from_c_str(rel_path));
+  rc = aws_http_message_set_request_path(msg, aws_byte_cursor_from_c_str(path_buf));
   assert(rc == AWS_OP_SUCCESS);
 
   /* Set Host header for MinIO / S3-compatible endpoints */
