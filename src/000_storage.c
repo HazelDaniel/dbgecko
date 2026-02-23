@@ -1,3 +1,8 @@
+#include <aws/auth/credentials.h>
+#include <aws/common/allocator.h>
+#include <aws/common/byte_buf.h>
+#include <aws/io/host_resolver.h>
+#include <aws/s3/s3_client.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
 #include <stdio.h>
@@ -14,11 +19,18 @@
 /* -----------------------S3-------------------------------- */
 S3State_t *create_s3_state() {
   S3State_t *state = malloc(sizeof(S3State_t));
+  S3Runtime_t *rt = init_s3_runtime();
+  AppConfig_t *cfg = *get_app_config_handle();
+  S3Config_t s3_config = cfg->storage->backend->backend.s3;
 
-  if (!state) return NULL;
+  if (!state || !rt) return NULL;
 
-  state->http_client = NULL;
-  state->multipart_upload_id = NULL;
+  state->total_bytes = 0;
+  state->failed = false;
+  state->buffer_cap = DEFAULT_STREAM_BUFFER_SIZE;
+  state->eof = false;
+  state->key = (struct aws_byte_cursor){0};
+  state->runtime = rt;
 
   return state;
 }
@@ -28,9 +40,8 @@ StackStatus_t cleanup_s3_state (const StorageContext_t *const ctx) {
   S3State_t *state_s3 = (S3State_t *)ctx->state;
 
   if (!state_s3) return EXEC_FAILURE;
-
-  if (state_s3->http_client) free(state_s3->http_client);
-  if (state_s3->multipart_upload_id) free(state_s3->multipart_upload_id);
+  // if (state_s3->part_buffer) free(state_s3->part_buffer);
+  destroy_s3_runtime(state_s3->runtime);
   free(state_s3);
 
   return status;
@@ -120,9 +131,6 @@ SFTPState_t *create_sftp_state() {
     ssh_free(state->parent_state), free(state);
     return NULL;
   }
-
-  // printf("------------sizeof parent state is %zu\t while size of session is %zu\n", sizeof(*(state)), sizeof((ssh_session)*(state->parent_state)));
-  // puts("state successfully created");
 
   return state;
 }
@@ -284,7 +292,8 @@ StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *dst_path
 
   snprintf(tmp_path, sizeof(tmp_path), "%s", dst_path);
 
-  status = ctx->ops->write_open(ctx, tmp_path, err);
+  status = ctx->ops->write_open(ctx, tmp_path, err); // TODO: write_open didn't work for s3 transport
+
   if (status != STORAGE_OK) return status;
 
   for (;;) {
@@ -323,7 +332,8 @@ fail_cleanup:
 }
 
 /**
- * storage_read_stream - storage/transport backend agnostic read streamer
+ * storage_read_stream - storage transport/backend agnostic read streamer
+ * @ptc: the backend protocol
  * @ctx: storage context for a storage backend
  * @src_path: object path in storage (relative path)
  * @sink: a callback function provided by db plugins - consumer to receive chunks
@@ -331,12 +341,14 @@ fail_cleanup:
  * @err: the error message to propagate (in the event of a fail)
  * Returns: StorageStatus_t
  */
-StorageStatus_t storage_read_stream(StorageContext_t *ctx, const char *src_path, StorageDataSink sink,
+StorageStatus_t storage_read_stream(RemoteStorageProtocol_t ptc, StorageContext_t *ctx, const char *src_path, StorageDataSink sink,
   void *local_state, StorageErrorMessage_t *err) {
   if (!ctx || !ctx->state || !src_path || !sink) {
     set_err((const char **)err, BUF_LEN_XS, "invalid args");
     return STORAGE_READ_FAILED;
   }
 
-  return local_fs__read_file(ctx, src_path, sink, local_state, err);
+  StorageOps_t *ops_table = get_storage_ops_table();
+
+  return ops_table[ptc].read_file(ctx, src_path, sink, local_state, err);
 }

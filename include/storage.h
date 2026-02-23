@@ -17,6 +17,9 @@
 #define SFTP_PTC_TOKEN ("sftp")
 #define S3_PTC_TOKEN ("s3")
 
+#define AWS_S3_HOST_MAX_RETRIES (16)
+#define AWS_S3_CPU_MIN_COUNT (2)
+
 #define SUPPORTED_PROTOCOL_COUNT (5)
 
 #define EMIT_STORAGE_OPS_DEFS(op) \
@@ -98,7 +101,7 @@ StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc)
 StorageStatus_t storage_write_stream(StorageContext_t *ctx, const char *path, StorageDataSource source,
   void *userdata, StorageErrorMessage_t *err);
 
-StorageStatus_t storage_read_stream(StorageContext_t *ctx, const char *src_path, StorageDataSink sink,
+StorageStatus_t storage_read_stream(RemoteStorageProtocol_t ptc, StorageContext_t *ctx, const char *src_path, StorageDataSink sink,
   void *local_state, StorageErrorMessage_t *err);
 
 StackStatus_t destroy_storage_context(StorageContext_t *ctx);

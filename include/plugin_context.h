@@ -15,7 +15,7 @@
 #include "globals.h"
 
 //macro defs
-#define DEFAULT_STREAM_BUFFER_SIZE (BUF_LEN * BUF_LEN) // 1 MB
+#define DEFAULT_STREAM_BUFFER_SIZE (BUF_LEN_L * BUF_LEN) // 4 MB
 
 
 typedef struct mongoc_client_t MongoClient_t;

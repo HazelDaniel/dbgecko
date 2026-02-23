@@ -9,31 +9,32 @@ db:
   backup_mode: "incremental" # default full
   # backup_mode: "incremental/full/schema-only" # default full
 storage:
-  output_name: "backup_mongo"
+  output_name: "backups"
   compression: "gzip" #default gzip
-  base_dir: "/tmp/dbgecko/backups"
-  # s3:
-    # endpoint: "https:// | http:// | minio:9000 | .."
-    # region: "us-east1"
-    # access_key: ""
-    # secret_key: ""
-    # use_ssl: true
-    # path_style: ""
-    # session_token: ""
-    # max_retries: 3
-    # timeout_seconds: 10
-    # multipart_threshold_mb: 1000
-    # multipart_chunk_mb: 100
+  base_dir: "uploads"
+  s3:
+    region: "us-east1"
+    access_key: "toughware"
+    secret_key: "hazel999"
+    use_ssl: false
+    endpoint: "http://192.168.69.185:9000"
+####### optional
+    path_style: "." # TODO: change to force_path_style?<boolean>
+    session_token: "."
+    max_retries: 3 # TODO: remove this, users don't have to provide
+    timeout_seconds: 10
+    multipart_threshold_mb: 1000 # TODO: remove this, users don't have to provide
+    multipart_chunk_mb: 100 # TODO: remove this, users don't have to provide
   # local:
   #   base_dir: "/tmp/dbgecko/backups"
-  sftp:
-    private_key: "/home/toughware/.ssh/server/id_ed25519"
-    port: 22
-    host: "xxx.x.x.xx.xxx"
-    username: "toughware"
-    password: "xxxxxxxx"
-    max_retries: 3
-    timeout_seconds: 30
+  # sftp:
+  #   private_key: "/home/toughware/.ssh/server/id_ed25519"
+  #   port: 22
+  #   host: "localhost"
+  #   username: "toughware"
+  #   password: "hazel999"
+  #   max_retries: 3
+  #   timeout_seconds: 30
   encryption_key_path: "/home/user/.keys/backup.key" # (required) for secure connection
 runtime:
   log_level: 2
