@@ -46,8 +46,11 @@ int main(int argc, char *argv[]) {
       return err_message ? EXEC_SUCCESS : EXEC_FAILURE;
     }
 
+    // puts("-------------------------------destroying plugin");
+    // exit(0);
     status = destroy_plugin_registry(&err_message);
-    destroy_app_config();
+    // puts("-------------------------------destroyed plugin");
+    // destroy_app_config();
 
     if (status != EXEC_SUCCESS) {
       if (err_message) {

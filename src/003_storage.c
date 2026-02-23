@@ -231,11 +231,6 @@ StorageStatus_t sftp__write_abort(const StorageContext_t *ctx, const char *tmp_p
  */
 StorageStatus_t sftp__read_file(const StorageContext_t *ctx, const char *rel_path, StorageDataSource sink,
   void *sink_userdata, StorageErrorMessage_t *err) {
-  // if (!ctx || !ctx->state || !rel_path || !sink) { // currently handled in caller
-  //   set_err((const char **)err, BUF_LEN_XS, "invalid args");
-  //   return STORAGE_READ_FAILED;
-  // }
-
   AppConfig_t *cfg = *get_app_config_handle();
   char full[BUF_LEN_S];
   SFTPState_t *s = (SFTPState_t *)ctx->state;

@@ -14,6 +14,7 @@ file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c")
 # include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 find_package(libssh REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 pkg_check_modules(PCRE2 REQUIRED libpcre2-8)
 pkg_check_modules(YAML REQUIRED yaml-0.1)
@@ -22,11 +23,23 @@ pkg_check_modules(LIBSSH REQUIRED libssh)
 # Create the executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES} m pcre2-8 ${LIBSSH_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}
+	aws-c-s3
+	aws-c-auth
+	aws-c-http
+	aws-c-io
+	aws-c-cal
+	aws-c-compression
+	aws-c-sdkutils
+	aws-c-common
+)
+target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES} m pcre2-8 ${LIBSSH_LIBRARIES} OpenSSL::Crypto OpenSSL::SSL)
+
 target_link_options(${PROJECT_NAME} PRIVATE -rdynamic -export-dynamic)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ../include  ${YAML_INCLUDE_DIRS} ${PCRE2_INCLUDE_DIRS} ${LIBSSH_INCLUDE_DIRS})
 target_link_directories(${PROJECT_NAME} PUBLIC ${LIBSSH_LIBRARY_DIRS})
+target_link_directories(${PROJECT_NAME} PUBLIC /usr/local/lib)
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${PCRE2_CFLAGS_OTHER})
 # Compiler flags (applies to all targets)
