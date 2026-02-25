@@ -97,6 +97,14 @@ static void s3_meta_request_finish(struct aws_s3_meta_request *meta_request, con
   aws_s3_meta_request_release(meta_request);
 }
 
+static void s3_tui_progress_callback(struct aws_s3_meta_request *meta_request, const struct aws_s3_meta_request_progress *progress, void *user_data) {
+  TUIState_t *tui = get_tui_state();
+  
+  if (tui && progress->content_length > 0) {
+    tui->progress_measurable = true;
+    tui->progress = (float)progress->bytes_transferred / (float)progress->content_length;
+  }
+}
 StorageStatus_t s3__write_open(const StorageContext_t *ctx, const char *rel_path, StorageErrorMessage_t *err) {
   S3State_t *s = ctx->state;
   struct aws_allocator *alloc = s->runtime->allocator;
@@ -178,7 +186,7 @@ StorageStatus_t s3__write_open(const StorageContext_t *ctx, const char *rel_path
     .finish_callback = s3_meta_request_finish,
     .body_callback = NULL,
     .headers_callback = NULL,
-    .progress_callback = NULL,
+    .progress_callback = s3_tui_progress_callback,
     .shutdown_callback = NULL,
   };
 
@@ -414,6 +422,7 @@ StorageStatus_t s3__read_file(const StorageContext_t *ctx, const char *rel_path,
     .message = msg,
     .body_callback = s3_get_body_cb,
     .finish_callback = s3_get_finished,
+    .progress_callback = s3_tui_progress_callback,
     .user_data = &st,
     .signing_config = s->runtime->signing,
     .endpoint = &s->runtime->endpoint,
