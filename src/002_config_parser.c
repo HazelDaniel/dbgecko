@@ -182,7 +182,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_NAME,
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
-    DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
+    DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR, NULL, NULL);
   PlatformConfig_t *cfg_platform = init_platform_config(DEFAULT_PLATFORM_VERSION);
   PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_DIR_PATH, DEFAULT_PLUGIN_PATH);
   AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin),
@@ -196,9 +196,9 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   ConfigParserStatus_t loader_status = CONFIG_OK;
   DBConnConfig_t *db_con_config = NULL;
   StackErrorMessage_t err_msg = NULL;
-  char *string_config_list[9] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
+  char *string_config_list[11] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
     CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
-    CFG_PATH, CFG_PLUGIN_PREFIX(dir), CFG_PLUGIN_PREFIX(path), NULL};
+    CFG_PATH, CFG_PLUGIN_PREFIX(dir), CFG_PLUGIN_PREFIX(path), CFG_RUNTIME_PREFIX(mode), CFG_RUNTIME_PREFIX(op), NULL};
 
   set_app_config(cfg);
 
@@ -312,6 +312,10 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
           strcpy(cfg->plugin->path, (char *)current->value);
         } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(tmp_dir)) == 0) {
           strcpy(cfg->runtime->temp_dir, (char *)current->value);
+        } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(mode)) == 0) {
+          strcpy(cfg->runtime->mode, (char *)current->value);
+        } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(op)) == 0) {
+          strcpy(cfg->runtime->op, (char *)current->value);
         }
         break;
     }

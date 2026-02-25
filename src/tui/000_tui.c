@@ -18,6 +18,8 @@
 #define CP_SUCCESS   8
 
 
+static TUIState_t *g_tui_state = NULL;
+
 static void init_color_pairs() {
   start_color();
   use_default_colors();
@@ -33,6 +35,7 @@ static void init_color_pairs() {
 }
 
 void tui_init(TUIState_t *state) {
+  g_tui_state = state;
   setlocale(LC_ALL, "");
 
   initscr();
@@ -61,6 +64,7 @@ void tui_init(TUIState_t *state) {
   state->win_op_log = NULL;
   state->win_status_log = NULL;
   state->win_modal = NULL;
+  state->op_executed = false;
 
   state->status_log.head = 0;
   state->status_log.count = 0;
@@ -76,6 +80,11 @@ void tui_shutdown(TUIState_t *state) {
   if (state->win_main) delwin(state->win_main);
 
   endwin();
+  g_tui_state = NULL;
+}
+
+TUIState_t *get_tui_state(void) {
+  return g_tui_state;
 }
 
 void tui_push_log(TUIState_t *state, TUILogLevel_t level, const char *fmt, ...) {

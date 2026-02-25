@@ -1,6 +1,7 @@
 #include "include/storage.h"
 #include "include/storage_s3.h"
 #include "include/config_parser.h"
+#include "include/tui.h"
 #include <aws/auth/auth.h>
 #include <aws/auth/signing_config.h>
 #include <aws/common/common.h>
@@ -14,6 +15,7 @@
 #include <aws/sdkutils/sdkutils.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <threads.h>
 
 
@@ -28,6 +30,39 @@
 
 static _Bool aws_runtime_init = false;
 
+static int s3_tui_logger_log(struct aws_logger *logger, enum aws_log_level log_level, aws_log_subject_t subject, const char *format, ...) {
+  va_list args;
+  char buf[BUF_LEN_L];
+  TUIState_t *tui = get_tui_state();
+
+  va_start(args, format);
+  vsnprintf(buf, sizeof(buf), format, args);
+  va_end(args);
+
+  if (tui) {
+    TUILogLevel_t t_lvl = LOG_INFO;
+    if (log_level == AWS_LOG_LEVEL_ERROR || log_level == AWS_LOG_LEVEL_FATAL) t_lvl = LOG_ERROR;
+    else if (log_level == AWS_LOG_LEVEL_WARN) t_lvl = LOG_WARN;
+
+    tui_push_log(tui, t_lvl, "[s3] %s", buf);
+  } else {
+    fprintf(stderr, "[s3] %s\n", buf);
+  }
+
+  return AWS_OP_SUCCESS;
+}
+
+static enum aws_log_level s3_tui_logger_get_log_level(struct aws_logger *logger, aws_log_subject_t subject) {
+  return AWS_LOG_LEVEL_INFO;
+}
+
+static void s3_tui_logger_clean_up(struct aws_logger *logger) {}
+
+static struct aws_logger_vtable s3_tui_logger_vtable = {
+  .log = s3_tui_logger_log,
+  .get_log_level = s3_tui_logger_get_log_level,
+  .clean_up = s3_tui_logger_clean_up,
+};
 
 S3InputStream_t *s3_input_stream_new(struct aws_allocator *allocator);
 static void s3_meta_request_finish(struct aws_s3_meta_request *meta_request, const struct aws_s3_meta_request_result *result, void *user_data);
@@ -476,12 +511,9 @@ S3Runtime_t *init_s3_runtime() {
     return NULL;
   }
 
-  struct aws_logger_standard_options log_opts = {
-    .level = AWS_LOG_LEVEL_INFO,
-    .file = stderr,
-  };
+  logger->allocator = alloc;
+  logger->vtable = &s3_tui_logger_vtable;
 
-  aws_logger_init_standard(logger, alloc, &log_opts);
   aws_logger_set(logger);
 
   rt->allocator = alloc;

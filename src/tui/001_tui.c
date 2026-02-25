@@ -45,7 +45,7 @@ static _Bool try_load_config_from_path(TUIState_t *state, const char *path) {
     StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_NAME,
       DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
     RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
-      DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
+      DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR, NULL, NULL);
     PlatformConfig_t *cfg_platform = init_platform_config(DEFAULT_PLATFORM_VERSION);
     PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_DIR_PATH, DEFAULT_PLUGIN_PATH);
     AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin);
@@ -194,6 +194,7 @@ int tui_handle_startup_input(TUIState_t *state, int ch) {
 
       state->screen = TUI_SCREEN_OPERATION;
       state->active_section = TUI_SECTION_OP_LOG;
+      state->op_executed = false;
       tui_push_op_log(state, LOG_INFO, "Operation selected: %s",
         menu_items[state->menu_selected]);
 

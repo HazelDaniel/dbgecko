@@ -175,30 +175,74 @@ static int handle_operation_input(TUIState_t *state, int ch) {
   return -1;
 }
 
+static void tui_execute_operation(TUIState_t *state) {
+  StackErrorMessage_t err = NULL;
+  StackStatus_t status;
+  AppConfig_t *cfg = *get_app_config_handle();
+  DriverStatus_t op_status = OP_FAIL;
+  PluginRegistry_t *reg = NULL;
+  PluginDriver_t *driver = NULL;
+
+  state->progress_measurable = false;
+  state->op_status_text[0] = '\0';
+
+  tui_push_log(state, LOG_INFO, "Loading plugin for %s...", cfg->db->type);
+
+  status = load_plugin(&err, NULL);
+  if (status != EXEC_SUCCESS) {
+    tui_push_op_log(state, LOG_ERROR, "Plugin load failed: %s", err ? err : "unknown error");
+    tui_push_log(state, LOG_ERROR, "Operation aborted");
+    if (err) free(err);
+    state->op_executed = true;
+    return;
+  }
+
+  reg = get_plugin_registry_entry(NULL);
+  if (!reg || !reg->driver) {
+    tui_push_op_log(state, LOG_ERROR, "Plugin invalid or missing driver");
+    state->op_executed = true;
+    return;
+  }
+
+  driver = reg->driver;
+  tui_push_log(state, LOG_INFO, "Plugin '%s' loaded (v%.1f)", driver->name, (double)driver->version);
+
+  tui_push_op_log(state, LOG_INFO, "Connecting...");
+  if (driver->connect(cfg, &err) != OP_SUCCESS) {
+    tui_push_op_log(state, LOG_ERROR, "Connect failed: %s", err ? err : "unknown error");
+    if (err) free(err);
+    state->op_executed = true;
+    return;
+  }
+
+  tui_push_op_log(state, LOG_INFO, "Executing operation...");
+
+  switch (state->menu_selected) {
+    case TUI_OP_BACKUP:
+      op_status = driver->backup(cfg, &err);
+      break;
+    case TUI_OP_RESTORE:
+      op_status = driver->restore(cfg, &err);
+      break;
+    default:
+      tui_push_op_log(state, LOG_WARN, "Operation not implemented yet");
+      op_status = OP_SUCCESS;
+      break;
+  }
+
+  if (op_status != OP_SUCCESS) {
+    tui_push_op_log(state, LOG_ERROR, "Operation failed: %s", err ? err : "unknown error");
+    if (err) free(err);
+  } else {
+    tui_push_op_log(state, LOG_INFO, "Operation completed successfully");
+    tui_push_log(state, LOG_INFO, "Success");
+  }
+
+  state->op_executed = true;
+}
+
 void tui_run(TUIState_t *state, int argc, char **argv) {
-  StackError_t *err = NULL;
   int ch;
-
-  /* try loading config from CLI args first */
-  if (argc > 1) {
-    merge_configs(argc, argv, &err);
-
-    if (!err) {
-      state->config_loaded = true;
-      tui_push_log(state, LOG_INFO, "Configuration loaded from CLI arguments");
-    } else {
-      tui_push_log(state, LOG_WARN, "CLI config: %s", err->message);
-      destroy_stack_error(err);
-      err = NULL;
-    }
-  }
-
-  /* try default config path if CLI didn't provide one */
-  if (!state->config_loaded) {
-    if (tui_try_default_config(state)) {
-      state->config_loaded = true;
-    }
-  }
 
   while (state->running) {
     switch (state->screen) {
@@ -209,6 +253,10 @@ void tui_run(TUIState_t *state, int argc, char **argv) {
       case TUI_SCREEN_OPERATION:
         state->spinner_frame = (state->spinner_frame + 1) % TUI_SPINNER_FRAMES;
         draw_operation_screen(state);
+        if (!state->op_executed) {
+          tui_execute_operation(state);
+          draw_operation_screen(state);
+        }
         break;
     }
 
