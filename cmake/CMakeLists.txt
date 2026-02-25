@@ -9,12 +9,13 @@ if(NOT CMAKE_C_COMPILER)
 endif()
 
 # Collect all C source files
-file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c")
+file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c" "../src/tui/*.c")
 
 # include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 find_package(libssh REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(Curses REQUIRED)
 
 pkg_check_modules(PCRE2 REQUIRED libpcre2-8)
 pkg_check_modules(YAML REQUIRED yaml-0.1)
@@ -33,7 +34,8 @@ target_link_libraries(${PROJECT_NAME}
 	aws-c-sdkutils
 	aws-c-common
 )
-target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES} m pcre2-8 ${LIBSSH_LIBRARIES} OpenSSL::Crypto OpenSSL::SSL)
+target_link_libraries(${PROJECT_NAME} ${YAML_LIBRARIES} m pcre2-8 ${LIBSSH_LIBRARIES} OpenSSL::Crypto OpenSSL::SSL ${CURSES_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CURSES_INCLUDE_DIRS})
 
 target_link_options(${PROJECT_NAME} PRIVATE -rdynamic -export-dynamic)
 
