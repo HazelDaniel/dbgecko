@@ -19,6 +19,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc valgrind cmake make g++ libyaml-dev libpcre2-dev libssh-4 libssh-dev libncurses-dev
 
+      - name: Cache AWS C SDK
+        id: cache-aws
+        uses: actions/cache@v4
+        with:
+          path: /opt/aws-sdk-c
+          key: ${{ runner.os }}-aws-c-sdk-shared-v2
+
+      - name: Build AWS C SDK
+        if: steps.cache-aws.outputs.cache-hit != 'true'
+        run: |
+          sudo mkdir -p /opt/aws-sdk-c
+          sudo chown -R $USER:$USER /opt/aws-sdk-c
+          export CMAKE_PREFIX_PATH=/opt/aws-sdk-c
+          
+          # Build shared libraries (-DBUILD_SHARED_LIBS=ON)
+          REPOS=("aws-c-common" "aws-c-sdkutils" "aws-c-cal" "aws-c-compression" "s2n-tls" "aws-c-io" "aws-c-http" "aws-c-auth" "aws-c-s3")
+          for repo in "${REPOS[@]}"; do
+            if [ "$repo" = "s2n-tls" ]; then
+               git clone --depth 1 https://github.com/aws/s2n-tls.git
+            else
+               git clone --depth 1 https://github.com/awslabs/$repo.git
+            fi
+            cmake -S $repo -B $repo/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/aws-sdk-c -DCMAKE_PREFIX_PATH=/opt/aws-sdk-c
+            cmake --build $repo/build --target install -j $(nproc)
+          done
+
       # ---------------------------------------------------------
       # 1. Build with sanitizers (ASan + UBSan)
       # ---------------------------------------------------------
@@ -31,13 +57,16 @@ jobs:
             -g \
             -fsanitize=address,undefined \
             -fno-omit-frame-pointer \
-            src/*.c src/utils/*.c src/tui/*.c -I include -lyaml -Llib -lssh -lpcre2-8 -lncurses \
+            src/*.c src/utils/*.c src/tui/*.c -I include -I /opt/aws-sdk-c/include \
+            -Llib -L /opt/aws-sdk-c/lib -L /opt/aws-sdk-c/lib64 \
+            -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io -ls2n -laws-c-compression -laws-c-cal -laws-c-sdkutils -laws-c-common \
+            -lyaml -lssh -lpcre2-8 -lncurses -lm -lcrypto -lssl \
             -o build-asan/dbgecko
 
       - name: Run ASan + UBSan binary
         run: |
           echo "Running AddressSanitizer + UndefinedBehaviorSanitizer..."
-          DBGECKO_HEADLESS=1 ./build-asan/dbgecko || exit 1
+          DBGECKO_HEADLESS=1 LD_LIBRARY_PATH=/opt/aws-sdk-c/lib:/opt/aws-sdk-c/lib64 ./build-asan/dbgecko || exit 1
 
       # ---------------------------------------------------------
       # 2. Build Valgrind version (NO sanitizers)
@@ -49,8 +78,11 @@ jobs:
             -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
             -std=c11 \
             -g \
-            src/*.c src/utils/*.c src/tui/*.c -I include -lyaml -Llib -lssh -lpcre2-8 -lncurses \
-            -o build-valgrind/dbgecko -lm
+            src/*.c src/utils/*.c src/tui/*.c -I include -I /opt/aws-sdk-c/include \
+            -Llib -L /opt/aws-sdk-c/lib -L /opt/aws-sdk-c/lib64 \
+            -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io -ls2n -laws-c-compression -laws-c-cal -laws-c-sdkutils -laws-c-common \
+            -lyaml -lssh -lpcre2-8 -lncurses -lm -lcrypto -lssl \
+            -o build-valgrind/dbgecko
 
       - name: Run Valgrind memory scan
         run: |
@@ -61,7 +93,7 @@ jobs:
             --track-origins=yes \
             --errors-for-leak-kinds=all \
             --error-exitcode=1 \
-            env DBGECKO_HEADLESS=1 ./build-valgrind/dbgecko
+            env DBGECKO_HEADLESS=1 LD_LIBRARY_PATH=/opt/aws-sdk-c/lib:/opt/aws-sdk-c/lib64 ./build-valgrind/dbgecko
 
       # ---------------------------------------------------------
       # 3. Run unit tests via CMake/CTest
@@ -71,6 +103,8 @@ jobs:
           rm -rf build
           mkdir build
           cd build
-          cmake ..
+          export CFLAGS="-I/opt/aws-sdk-c/include"
+          export LDFLAGS="-L/opt/aws-sdk-c/lib -L/opt/aws-sdk-c/lib64"
+          cmake .. -DCMAKE_PREFIX_PATH=/opt/aws-sdk-c
           cmake --build .
-          ctest -V
+          LD_LIBRARY_PATH=/opt/aws-sdk-c/lib:/opt/aws-sdk-c/lib64 ctest -V
