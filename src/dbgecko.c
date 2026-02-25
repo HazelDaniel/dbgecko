@@ -11,23 +11,52 @@ int main(int argc, char **argv)
 {
   TUIState_t state;
   StackError_t *err = NULL;
-
-  merge_configs(argc, argv, &err);
   bool cli_mode = false;
-  for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "--runtime_mode=cli") == 0 || strcmp(argv[i], "-runtime_mode=cli") == 0) {
-      cli_mode = true;
-      break;
+  merge_configs(argc, argv, &err);
+  AppConfig_t *cfg = *get_app_config_handle();
+
+  if (!cfg){
+    for (int i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "--runtime_mode=cli") == 0 || strcmp(argv[i], "-runtime_mode=cli") == 0) {
+        cli_mode = true;
+        break;
+      }
     }
+
+    if (!cli_mode) {
+      if (err) {
+        tui_push_log(&state, LOG_ERROR, err->message);
+        destroy_stack_error(err);
+
+        return EXEC_FAILURE;
+      }
+
+      tui_push_log(&state, LOG_ERROR, "Unknown configuration Error");
+
+      return EXEC_FAILURE;
+    }
+
+    if (err) {
+      fprintf(stderr, "Configuration error: %s\n", err->message);
+      destroy_stack_error(err);
+
+      return EXEC_FAILURE;
+    }
+
+    fprintf(stderr, "Configuration error: Unknown!");
+
+    return EXEC_FAILURE;
   }
 
-  AppConfig_t *cfg = *get_app_config_handle();
+  cli_mode = strcmp(cfg->runtime->mode, "cli") == 0;
 
   if (err && cli_mode) {
     fprintf(stderr, "Configuration error: %s\n", err->message);
     destroy_stack_error(err);
+
     return EXEC_FAILURE;
   }
+
   if (err) {
     destroy_stack_error(err);
     err = NULL;  // will fall through to TUI missing config handling

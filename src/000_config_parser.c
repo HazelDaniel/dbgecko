@@ -12,8 +12,8 @@ AppConfig_t **get_app_config_handle() {
 void set_app_config(AppConfig_t *cfg) {
   AppConfig_t **cfg_ptr = get_app_config_handle();
 
-  if (!cfg_ptr) return;
-  if (*cfg_ptr) destroy_app_config();
+  if (!cfg_ptr) { return; }
+  if (*cfg_ptr) { destroy_app_config(); }
   *cfg_ptr = cfg;
 }
 
@@ -193,7 +193,7 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
   VALIDATE_COND_WITH_MESSAGE("temporary runtime directory not provided!", (!cfg->runtime->temp_dir[0]), "%s");
   VALIDATE_COND_WITH_MESSAGE("incompatible platform version", (cfg->platform->version < CURRENT_PLATFORM_VERSION - VERSION_SUPPORT_RANGE ||
     cfg->platform->version > CURRENT_PLATFORM_VERSION + VERSION_SUPPORT_RANGE), "%s");
-  VALIDATE_COND_WITH_MESSAGE("invalid mode!", (strcmp(cfg->runtime->mode, "tui") != 0 && strcmp(cfg->runtime->mode, "cli") != 0), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid interaction mode!", (strcmp(cfg->runtime->mode, "tui") != 0 && strcmp(cfg->runtime->mode, "cli") != 0), "%s");
   VALIDATE_COND_WITH_MESSAGE("operation not provided in CLI mode!", (strcmp(cfg->runtime->mode, "cli") == 0 && !cfg->runtime->op[0]), "%s");
 
   #define STORAGE_CFG_KEY_MISSING_CHECK(backend_, key_) \

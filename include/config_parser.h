@@ -134,7 +134,7 @@ typedef struct RuntimeConfig {
   size_t          thread_count;
   char            temp_dir[BUF_LEN_S];
   char            mode[BUF_LEN_XS];
-  char            op[BUF_LEN_XS];
+  char            op[BUF_LEN_XS]; // mandatory for cli mode only.
 } RuntimeConfig_t;
 
 typedef struct PlatformConfig {
