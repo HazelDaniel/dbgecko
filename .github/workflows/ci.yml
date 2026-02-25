@@ -34,7 +34,7 @@ jobs:
           export CMAKE_PREFIX_PATH=/opt/aws-sdk-c
           
           # Build shared libraries (-DBUILD_SHARED_LIBS=ON)
-          REPOS=("aws-c-common" "aws-c-sdkutils" "aws-c-cal" "aws-c-compression" "s2n-tls" "aws-c-io" "aws-c-http" "aws-c-auth" "aws-c-s3")
+          REPOS=("aws-c-common" "aws-checksums" "aws-c-sdkutils" "aws-c-cal" "aws-c-compression" "s2n-tls" "aws-c-io" "aws-c-http" "aws-c-auth" "aws-c-s3")
           for repo in "${REPOS[@]}"; do
             if [ "$repo" = "s2n-tls" ]; then
                git clone --depth 1 https://github.com/aws/s2n-tls.git
@@ -59,7 +59,7 @@ jobs:
             -fno-omit-frame-pointer \
             src/*.c src/utils/*.c src/tui/*.c -I include -I /opt/aws-sdk-c/include \
             -Llib -L /opt/aws-sdk-c/lib -L /opt/aws-sdk-c/lib64 \
-            -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io -ls2n -laws-c-compression -laws-c-cal -laws-c-sdkutils -laws-c-common \
+            -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io -ls2n -laws-c-compression -laws-c-cal -laws-c-sdkutils -laws-checksums -laws-c-common \
             -lyaml -lssh -lpcre2-8 -lncurses -lm -lcrypto -lssl \
             -o build-asan/dbgecko
 
@@ -80,7 +80,7 @@ jobs:
             -g \
             src/*.c src/utils/*.c src/tui/*.c -I include -I /opt/aws-sdk-c/include \
             -Llib -L /opt/aws-sdk-c/lib -L /opt/aws-sdk-c/lib64 \
-            -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io -ls2n -laws-c-compression -laws-c-cal -laws-c-sdkutils -laws-c-common \
+            -laws-c-s3 -laws-c-auth -laws-c-http -laws-c-io -ls2n -laws-c-compression -laws-c-cal -laws-c-sdkutils -laws-checksums -laws-c-common \
             -lyaml -lssh -lpcre2-8 -lncurses -lm -lcrypto -lssl \
             -o build-valgrind/dbgecko
 
