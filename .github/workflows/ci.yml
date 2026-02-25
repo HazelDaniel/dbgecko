@@ -105,6 +105,7 @@ jobs:
           cd build
           export CFLAGS="-I/opt/aws-sdk-c/include"
           export LDFLAGS="-L/opt/aws-sdk-c/lib -L/opt/aws-sdk-c/lib64"
+          export LD_LIBRARY_PATH=/opt/aws-sdk-c/lib:/opt/aws-sdk-c/lib64:$LD_LIBRARY_PATH
           cmake .. -DCMAKE_PREFIX_PATH=/opt/aws-sdk-c
           cmake --build .
-          LD_LIBRARY_PATH=/opt/aws-sdk-c/lib:/opt/aws-sdk-c/lib64 ctest -V
+          ctest -V
