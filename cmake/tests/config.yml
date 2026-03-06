@@ -1,0 +1,49 @@
+# precedence: CLI > YAML > DEFAULTS
+platform:
+  version: 1.2 # plugin version and platform version compatibility will be based on the config's version field
+db:
+  type: "mongodb" #required
+  uri: "mongodb://127.0.0.1/testdb" #required
+  timeout_seconds: 30 # default 10
+  max_retries: 5
+  backup_mode: "incremental" # default full
+  # backup_mode: "incremental/full/schema-only" # default full
+storage:
+  output_name: "backup_mongo"
+  compression: "gzip" #default gzip
+  base_dir: "uploads"
+  s3:
+    endpoint: "....."
+    region: "us-east1"
+    access_key: "....."
+    secret_key: "....."
+    use_ssl: true
+    path_style: "virtual"
+    session_token: "."
+    max_retries: 3
+    timeout_seconds: 10
+    multipart_threshold_mb: 1000
+    multipart_chunk_mb: 100
+  # local:
+  #   base_dir: "/tmp/dbgecko/backups"
+  # sftp:
+  #   private_key: "/home/toughware/.ssh/server/id_ed25519"
+  #   port: 22
+  #   host: "xxx.x.x.xx.xxx"
+  #   username: "toughware"
+  #   password: "xxxxxxxx"
+  #   max_retries: 3
+  #   timeout_seconds: 30
+  encryption_key_path: "/home/user/.keys/backup.key" # (required) for secure connection
+runtime:
+  log_level: 2
+  thread_count: 4
+  tmp_dir: "/home/user/dirs/document/dbgecko/directory/www/xyz/.open/dirs/"
+  # arbitrary: "" #testing with unknown keys
+#############################
+plugin:
+  dir: "/home/toughware/open-source/dbgecko/assets/plugins/"
+  path: "libdriver_mongo.1.1.1.so"
+environment:
+  USER: ""
+  HOME: ""
