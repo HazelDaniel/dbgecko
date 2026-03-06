@@ -96,3 +96,6 @@ _CPack_Packages/
 .zed
 
 plan
+cmake/tests/config.yml
+opencode.json
+landing_page

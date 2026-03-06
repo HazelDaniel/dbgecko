@@ -1,6 +1,7 @@
 #include "include/storage.h"
 #include "include/storage_s3.h"
 #include "include/config_parser.h"
+#include "include/tui.h"
 #include <aws/auth/auth.h>
 #include <aws/auth/signing_config.h>
 #include <aws/common/common.h>
@@ -14,6 +15,7 @@
 #include <aws/sdkutils/sdkutils.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <threads.h>
 
 
@@ -28,6 +30,43 @@
 
 static _Bool aws_runtime_init = false;
 
+static int s3_tui_logger_log(struct aws_logger *logger, enum aws_log_level log_level, aws_log_subject_t subject, const char *format, ...) {
+  va_list args;
+  char buf[BUF_LEN_L];
+  TUIState_t *tui = get_tui_state();
+
+  va_start(args, format);
+  vsnprintf(buf, sizeof(buf), format, args);
+  va_end(args);
+
+  if (tui) {
+    TUILogLevel_t t_lvl = LOG_INFO;
+    if (log_level == AWS_LOG_LEVEL_ERROR || log_level == AWS_LOG_LEVEL_FATAL) t_lvl = LOG_ERROR;
+    else if (log_level == AWS_LOG_LEVEL_WARN) t_lvl = LOG_WARN;
+
+    tui_push_log(tui, t_lvl, "[s3] %s", buf);
+  } else {
+    fprintf(stderr, "[s3] %s\n", buf);
+  }
+
+  return AWS_OP_SUCCESS;
+}
+
+static enum aws_log_level s3_tui_logger_get_log_level(struct aws_logger *logger, aws_log_subject_t subject) {
+#ifdef DEBUG_MODE
+  return AWS_LOG_LEVEL_INFO;
+#else
+  return AWS_LOG_LEVEL_FATAL;
+#endif
+}
+
+static void s3_tui_logger_clean_up(struct aws_logger *logger) {}
+
+static struct aws_logger_vtable s3_tui_logger_vtable = {
+  .log = s3_tui_logger_log,
+  .get_log_level = s3_tui_logger_get_log_level,
+  .clean_up = s3_tui_logger_clean_up,
+};
 
 S3InputStream_t *s3_input_stream_new(struct aws_allocator *allocator);
 static void s3_meta_request_finish(struct aws_s3_meta_request *meta_request, const struct aws_s3_meta_request_result *result, void *user_data);
@@ -62,6 +101,14 @@ static void s3_meta_request_finish(struct aws_s3_meta_request *meta_request, con
   aws_s3_meta_request_release(meta_request);
 }
 
+static void s3_tui_progress_callback(struct aws_s3_meta_request *meta_request, const struct aws_s3_meta_request_progress *progress, void *user_data) {
+  TUIState_t *tui = get_tui_state();
+  
+  if (tui && progress->content_length > 0) {
+    tui->progress_measurable = true;
+    tui->progress = (float)progress->bytes_transferred / (float)progress->content_length;
+  }
+}
 StorageStatus_t s3__write_open(const StorageContext_t *ctx, const char *rel_path, StorageErrorMessage_t *err) {
   S3State_t *s = ctx->state;
   struct aws_allocator *alloc = s->runtime->allocator;
@@ -102,7 +149,9 @@ StorageStatus_t s3__write_open(const StorageContext_t *ctx, const char *rel_path
   struct aws_http_message *msg = aws_http_message_new_request(alloc);
   AppConfig_t *cfg = *get_app_config_handle();
   char path_buf[1024];
-  snprintf(path_buf, sizeof(path_buf), "/%s/%s", cfg->storage->base_dir, rel_path);
+  const char *bd = cfg->storage->base_dir;
+  while (*bd == '/') bd++;
+  snprintf(path_buf, sizeof(path_buf), "/%s/%s", bd, rel_path);
 
   _Bool request_path_set_fail = aws_http_message_set_request_path(
     msg,
@@ -143,7 +192,7 @@ StorageStatus_t s3__write_open(const StorageContext_t *ctx, const char *rel_path
     .finish_callback = s3_meta_request_finish,
     .body_callback = NULL,
     .headers_callback = NULL,
-    .progress_callback = NULL,
+    .progress_callback = s3_tui_progress_callback,
     .shutdown_callback = NULL,
   };
 
@@ -350,7 +399,9 @@ StorageStatus_t s3__read_file(const StorageContext_t *ctx, const char *rel_path,
 
   AppConfig_t *cfg = *get_app_config_handle();
   char path_buf[1024];
-  snprintf(path_buf, sizeof(path_buf), "/%s/%s", cfg->storage->base_dir, rel_path);
+  const char *bd = cfg->storage->base_dir;
+  while (*bd == '/') bd++;
+  snprintf(path_buf, sizeof(path_buf), "/%s/%s", bd, rel_path);
 
   struct aws_http_message *msg = aws_http_message_new_request(alloc);
   rc = aws_http_message_set_request_method(msg, aws_http_method_get);
@@ -379,6 +430,7 @@ StorageStatus_t s3__read_file(const StorageContext_t *ctx, const char *rel_path,
     .message = msg,
     .body_callback = s3_get_body_cb,
     .finish_callback = s3_get_finished,
+    .progress_callback = s3_tui_progress_callback,
     .user_data = &st,
     .signing_config = s->runtime->signing,
     .endpoint = &s->runtime->endpoint,
@@ -476,12 +528,9 @@ S3Runtime_t *init_s3_runtime() {
     return NULL;
   }
 
-  struct aws_logger_standard_options log_opts = {
-    .level = AWS_LOG_LEVEL_INFO,
-    .file = stderr,
-  };
+  logger->allocator = alloc;
+  logger->vtable = &s3_tui_logger_vtable;
 
-  aws_logger_init_standard(logger, alloc, &log_opts);
   aws_logger_set(logger);
 
   rt->allocator = alloc;

@@ -152,8 +152,8 @@ int main(int argc, char *argv[]) {
     if (err) {
       fprintf(stderr, "Error [%d]: %s\n", err->code, err->message);
 
-      destroy_stack_error(err);
       status = err->code;
+      destroy_stack_error(err);
       return status;
     }
 

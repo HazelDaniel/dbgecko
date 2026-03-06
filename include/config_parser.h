@@ -133,6 +133,8 @@ typedef struct RuntimeConfig {
   size_t          log_level;
   size_t          thread_count;
   char            temp_dir[BUF_LEN_S];
+  char            mode[BUF_LEN_XS];
+  char            op[BUF_LEN_XS]; // mandatory for cli mode only.
 } RuntimeConfig_t;
 
 typedef struct PlatformConfig {
@@ -183,7 +185,7 @@ DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup
 
 StorageConfig_t *init_storage_config(const char *output_name, const char *compression, const char *encryption_key_path, const char *remote_target);
 
-RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
+RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir, const char *mode, const char *op);
 
 PlatformConfig_t *init_platform_config(float version);
 

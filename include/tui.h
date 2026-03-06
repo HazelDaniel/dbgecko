@@ -46,6 +46,8 @@ typedef enum {
 
 typedef struct TUILogEntry {
   TUILogLevel_t       level;
+  long                timestamp;
+  long                duration_ms;
   char                message[TUI_LOG_MSG_LEN];
 } TUILogEntry_t;
 
@@ -74,13 +76,16 @@ typedef struct TUIState {
   WINDOW              *win_header;
   WINDOW              *win_op_log;
   WINDOW              *win_status_log;
+  WINDOW              *win_nav;
   WINDOW              *win_modal;
+  _Bool               op_executed;
 } TUIState_t;
 
 
 void tui_init(TUIState_t *state);
 void tui_run(TUIState_t *state, int argc, char **argv);
 void tui_shutdown(TUIState_t *state);
+TUIState_t *get_tui_state(void);
 
 void tui_push_log(TUIState_t *state, TUILogLevel_t level, const char *fmt, ...);
 void tui_push_op_log(TUIState_t *state, TUILogLevel_t level, const char *fmt, ...);

@@ -12,8 +12,8 @@ AppConfig_t **get_app_config_handle() {
 void set_app_config(AppConfig_t *cfg) {
   AppConfig_t **cfg_ptr = get_app_config_handle();
 
-  if (!cfg_ptr) return;
-  if (*cfg_ptr) destroy_app_config();
+  if (!cfg_ptr) { return; }
+  if (*cfg_ptr) { destroy_app_config(); }
   *cfg_ptr = cfg;
 }
 
@@ -53,7 +53,7 @@ StorageConfig_t *init_storage_config(const char *output_name, const char *compre
   return cfg;
 }
 
-RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir) {
+RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir, const char *mode, const char *op) {
   RuntimeConfig_t *cfg = malloc(sizeof(RuntimeConfig_t));
 
   if (!cfg) return NULL;
@@ -61,6 +61,10 @@ RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, cons
   cfg->thread_count = thread_count;
   strncpy(cfg->temp_dir, temp_dir, sizeof(cfg->temp_dir) - 1);
   cfg->temp_dir[sizeof(cfg->temp_dir) - 1] = '\0';
+  strncpy(cfg->mode, mode ? mode : "tui", sizeof(cfg->mode) - 1);
+  cfg->mode[sizeof(cfg->mode) - 1] = '\0';
+  strncpy(cfg->op, op ? op : "", sizeof(cfg->op) - 1);
+  cfg->op[sizeof(cfg->op) - 1] = '\0';
 
   return cfg;
 }
@@ -189,6 +193,8 @@ void validate_app_config(AppConfig_t *cfg, StackError_t **err) {
   VALIDATE_COND_WITH_MESSAGE("temporary runtime directory not provided!", (!cfg->runtime->temp_dir[0]), "%s");
   VALIDATE_COND_WITH_MESSAGE("incompatible platform version", (cfg->platform->version < CURRENT_PLATFORM_VERSION - VERSION_SUPPORT_RANGE ||
     cfg->platform->version > CURRENT_PLATFORM_VERSION + VERSION_SUPPORT_RANGE), "%s");
+  VALIDATE_COND_WITH_MESSAGE("invalid interaction mode!", (strcmp(cfg->runtime->mode, "tui") != 0 && strcmp(cfg->runtime->mode, "cli") != 0), "%s");
+  VALIDATE_COND_WITH_MESSAGE("operation not provided in CLI mode!", (strcmp(cfg->runtime->mode, "cli") == 0 && !cfg->runtime->op[0]), "%s");
 
   #define STORAGE_CFG_KEY_MISSING_CHECK(backend_, key_) \
   {\
