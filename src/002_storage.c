@@ -53,7 +53,12 @@ static int s3_tui_logger_log(struct aws_logger *logger, enum aws_log_level log_l
 }
 
 static enum aws_log_level s3_tui_logger_get_log_level(struct aws_logger *logger, aws_log_subject_t subject) {
-  return AWS_LOG_LEVEL_INFO;
+  /*
+   * The user explicitly requested to silence internal AWS SDK logs.
+   * We will only let FATAL errors through, if anything at all.
+   * You can also use AWS_LOG_LEVEL_NONE.
+   */
+  return AWS_LOG_LEVEL_FATAL;
 }
 
 static void s3_tui_logger_clean_up(struct aws_logger *logger) {}

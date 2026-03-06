@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <locale.h>
+#include <time.h>
+#include <sys/time.h>
 #include "include/tui.h"
 #include "include/tui_widgets.h"
 #include "include/config_parser.h"
@@ -23,6 +25,17 @@ static TUIState_t *g_tui_state = NULL;
 static void init_color_pairs() {
   start_color();
   use_default_colors();
+
+  if (can_change_color()) {
+    // Attempt to set a modern Dracula-esque palette
+    // 1000 scale is used by ncurses for RGB
+    init_color(COLOR_CYAN,     545, 843, 886);   // #8BE9FD (Cyan)
+    init_color(COLOR_GREEN,    314, 980, 482);   // #50FA7B (Green)
+    init_color(COLOR_YELLOW,   945, 980, 549);   // #F1FA8C (Yellow)
+    init_color(COLOR_RED,      1000, 333, 333);  // #FF5555 (Red)
+    init_color(COLOR_BLUE,     745, 576, 976);   // #BD93F9 (Purple/Blue-ish)
+    init_color(COLOR_WHITE,    973, 973, 949);   // #F8F8F2 (Foreground)
+  }
 
   init_pair(CP_NORMAL,    COLOR_WHITE,   -1);
   init_pair(CP_ERROR,     COLOR_RED,     -1);
@@ -93,6 +106,8 @@ void tui_push_log(TUIState_t *state, TUILogLevel_t level, const char *fmt, ...) 
   va_list ap;
 
   entry->level = level;
+  entry->timestamp = time(NULL);
+  entry->duration_ms = 0;
 
   va_start(ap, fmt);
   vsnprintf(entry->message, TUI_LOG_MSG_LEN, fmt, ap);
@@ -111,6 +126,8 @@ void tui_push_op_log(TUIState_t *state, TUILogLevel_t level, const char *fmt, ..
   va_list ap;
 
   entry->level = level;
+  entry->timestamp = time(NULL);
+  entry->duration_ms = 0; // Duration updated elsewhere if needed
 
   va_start(ap, fmt);
   vsnprintf(entry->message, TUI_LOG_MSG_LEN, fmt, ap);

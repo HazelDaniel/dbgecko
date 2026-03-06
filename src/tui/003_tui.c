@@ -1,4 +1,6 @@
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>
 #include "include/tui.h"
 #include "include/tui_widgets.h"
 
@@ -59,6 +61,9 @@ void widget_draw_progress(WINDOW *win, int y, int x, float pct) {
 void widget_draw_log_entry(WINDOW *win, int y, TUILogEntry_t *entry, int max_w) {
   const char *prefix;
   int color;
+  char time_str[16] = {0};
+  char dur_str[32] = {0};
+  int msg_max_w;
 
   if (!entry || !entry->message[0]) return;
 
@@ -80,13 +85,36 @@ void widget_draw_log_entry(WINDOW *win, int y, TUILogEntry_t *entry, int max_w) 
       break;
   }
 
+  if (entry->timestamp > 0) {
+    struct tm *tm_info = localtime(&entry->timestamp);
+    strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
+  }
+
+  if (entry->duration_ms > 0) {
+    snprintf(dur_str, sizeof(dur_str), " (%.2fs)", entry->duration_ms / 1000.0);
+  }
+
+  msg_max_w = max_w - 8 - strlen(time_str) - strlen(dur_str) - 3; 
+
   wattron(win, COLOR_PAIR(color) | A_BOLD);
   mvwprintw(win, y, 2, "%s", prefix);
   wattroff(win, A_BOLD);
 
+  wattron(win, COLOR_PAIR(CP_NORMAL) | A_DIM);
+  if (time_str[0]) {
+    wprintw(win, " [%s]", time_str);
+  }
+  wattroff(win, A_DIM);
+
   wattron(win, COLOR_PAIR(CP_NORMAL));
-  wprintw(win, " %.*s", max_w - 8, entry->message);
+  wprintw(win, " %.*s", msg_max_w > 0 ? msg_max_w : 0, entry->message);
   wattroff(win, COLOR_PAIR(CP_NORMAL));
+
+  if (dur_str[0]) {
+    wattron(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
+    wprintw(win, "%s", dur_str);
+    wattroff(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
+  }
 
   wattroff(win, COLOR_PAIR(color));
 }
