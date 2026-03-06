@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./landing_page/public/logo.svg" alt="dbgecko Logo" width="180">
+  <img src="./static_assets/logo.svg" alt="dbgecko Logo" width="180">
 </p>
 
 # dbgecko
@@ -25,7 +25,7 @@
 ---
 
 ## 📦 Quick Start
-
+/tui mo
 ### Prerequisites
 
 Ensure you have the following dependencies installed:
@@ -80,9 +80,10 @@ storage:
     secret_key: "${AWS_SECRET_ACCESS_KEY}"
     bucket: "my-backups"
     use_ssl: true
-
+  # Local storage transport
   # local:
   #   base_dir: ${PATH_TO_BACKUP_DIRECTORY}
+  # and SFTP storage transport
   # sftp:
   #   private_key: "${PATH_TO_PRIVATE_KEY}"
   #   port: "${PORT_NUMBER}"
@@ -110,9 +111,9 @@ runtime:
 ## 🛠 Usage
 
 ### TUI Mode (Default)
-Simply run `dbgecko` to enter the interactive dashboard:
+Simply run `dbgecko --config_path=[path to configuration file]` to enter the interactive dashboard:
 ```bash
-dbgecko
+dbgecko --config_path=[path to configuration file]
 ```
 
 ### CLI Mode
@@ -120,12 +121,12 @@ For automation, use the `--runtime_mode=cli` flag:
 
 **Perform a backup:**
 ```bash
-dbgecko --runtime_mode=cli --op=backup --config=my_config.yml
+dbgecko --runtime_mode=cli --runtime_op=backup --config_path=[path to configuration file]
 ```
 
 **Restore a backup:**
 ```bash
-dbgecko --runtime_mode=cli --op=restore --backup_id=XYZ123
+dbgecko --runtime_mode=cli --runtime_op=restore   --config_path=[path to configuration file]
 ```
 
 ---
