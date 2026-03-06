@@ -53,12 +53,11 @@ static int s3_tui_logger_log(struct aws_logger *logger, enum aws_log_level log_l
 }
 
 static enum aws_log_level s3_tui_logger_get_log_level(struct aws_logger *logger, aws_log_subject_t subject) {
-  /*
-   * The user explicitly requested to silence internal AWS SDK logs.
-   * We will only let FATAL errors through, if anything at all.
-   * You can also use AWS_LOG_LEVEL_NONE.
-   */
+#ifdef DEBUG_MODE
+  return AWS_LOG_LEVEL_INFO;
+#else
   return AWS_LOG_LEVEL_FATAL;
+#endif
 }
 
 static void s3_tui_logger_clean_up(struct aws_logger *logger) {}
@@ -150,7 +149,9 @@ StorageStatus_t s3__write_open(const StorageContext_t *ctx, const char *rel_path
   struct aws_http_message *msg = aws_http_message_new_request(alloc);
   AppConfig_t *cfg = *get_app_config_handle();
   char path_buf[1024];
-  snprintf(path_buf, sizeof(path_buf), "/%s/%s", cfg->storage->base_dir, rel_path);
+  const char *bd = cfg->storage->base_dir;
+  while (*bd == '/') bd++;
+  snprintf(path_buf, sizeof(path_buf), "/%s/%s", bd, rel_path);
 
   _Bool request_path_set_fail = aws_http_message_set_request_path(
     msg,
@@ -398,7 +399,9 @@ StorageStatus_t s3__read_file(const StorageContext_t *ctx, const char *rel_path,
 
   AppConfig_t *cfg = *get_app_config_handle();
   char path_buf[1024];
-  snprintf(path_buf, sizeof(path_buf), "/%s/%s", cfg->storage->base_dir, rel_path);
+  const char *bd = cfg->storage->base_dir;
+  while (*bd == '/') bd++;
+  snprintf(path_buf, sizeof(path_buf), "/%s/%s", bd, rel_path);
 
   struct aws_http_message *msg = aws_http_message_new_request(alloc);
   rc = aws_http_message_set_request_method(msg, aws_http_method_get);

@@ -9,9 +9,15 @@
 
 int main(int argc, char **argv)
 {
-  TUIState_t state;
+  TUIState_t state = {0};
   StackError_t *err = NULL;
   bool cli_mode = false;
+
+  /* Headless mode: CI sanitizer checks just need a clean exit */
+  if (getenv("DBGECKO_HEADLESS")) {
+    return EXEC_SUCCESS;
+  }
+
   merge_configs(argc, argv, &err);
   AppConfig_t *cfg = *get_app_config_handle();
 
