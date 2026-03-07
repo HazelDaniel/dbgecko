@@ -109,16 +109,16 @@ void tui_draw_startup_screen(TUIState_t *state) {
   getmaxyx(stdscr, max_y, max_x);
   erase();
 
-  /* draw logo centered near top */
-  logo_start_y = max_y / 6;
+  /* draw logo centered near top (gecko + text banner ~ 19 lines tall) */
+  logo_start_y = 2;
   logo_start_x = (max_x / 2) - 25;
 
   if (logo_start_x < 0) logo_start_x = 0;
 
   widget_draw_logo(stdscr, logo_start_y, logo_start_x);
 
-  /* draw menu centered below logo */
-  menu_start_y = logo_start_y + 10;
+  /* draw menu centered below logo (gecko=9 + gap=1 + text=8 = 18 lines) */
+  menu_start_y = logo_start_y + 20;
   menu_start_x = (max_x / 2) - 12;
 
   if (menu_start_x < 0) menu_start_x = 0;

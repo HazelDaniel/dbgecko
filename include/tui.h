@@ -1,7 +1,9 @@
 #ifndef ___TUI_H___
 #define ___TUI_H___
 
-// standard library headers
+#ifndef _XOPEN_SOURCE_EXTENDED
+#define _XOPEN_SOURCE_EXTENDED
+#endif
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -16,6 +18,7 @@
 #define TUI_SPINNER_FRAMES (10)
 #define TUI_DEFAULT_CONFIG_PATH_FMT ("%s/.config/dbgecko/config.yml")
 #define TUI_INPUT_BUF_LEN (BUF_LEN_S)
+#define TUI_MAX_PLUGINS (16)
 
 typedef enum {
   LOG_INFO,
@@ -31,7 +34,8 @@ typedef enum {
 typedef enum {
   TUI_SECTION_MENU,
   TUI_SECTION_OP_LOG,
-  TUI_SECTION_STATUS_LOG
+  TUI_SECTION_STATUS_LOG,
+  TUI_SECTION_PLUGINS
 } TUISection_t;
 
 typedef enum {
@@ -76,9 +80,19 @@ typedef struct TUIState {
   WINDOW              *win_header;
   WINDOW              *win_op_log;
   WINDOW              *win_status_log;
+  WINDOW              *win_plugins;
   WINDOW              *win_nav;
   WINDOW              *win_modal;
   _Bool               op_executed;
+  /* plugin panel state */
+  int                 plugin_selected;
+  int                 plugin_scroll;
+  int                 plugin_count;
+  char                plugin_names[TUI_MAX_PLUGINS][BUF_LEN_XS];
+  char                plugin_paths[TUI_MAX_PLUGINS][BUF_LEN_M];
+  _Bool               plugin_loaded;
+  char                active_plugin_key[BUF_LEN_XS];
+  _Bool               plugins_discovered;
 } TUIState_t;
 
 

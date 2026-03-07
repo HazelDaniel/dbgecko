@@ -76,8 +76,15 @@ void tui_init(TUIState_t *state) {
   state->win_header = NULL;
   state->win_op_log = NULL;
   state->win_status_log = NULL;
+  state->win_plugins = NULL;
   state->win_modal = NULL;
   state->op_executed = false;
+  state->plugin_selected = 0;
+  state->plugin_scroll = 0;
+  state->plugin_count = 0;
+  state->plugin_loaded = false;
+  state->plugins_discovered = false;
+  state->active_plugin_key[0] = '\0';
 
   state->status_log.head = 0;
   state->status_log.count = 0;
@@ -89,6 +96,7 @@ void tui_shutdown(TUIState_t *state) {
   if (state->win_modal) delwin(state->win_modal);
   if (state->win_status_log) delwin(state->win_status_log);
   if (state->win_op_log) delwin(state->win_op_log);
+  if (state->win_plugins) delwin(state->win_plugins);
   if (state->win_header) delwin(state->win_header);
   if (state->win_main) delwin(state->win_main);
 

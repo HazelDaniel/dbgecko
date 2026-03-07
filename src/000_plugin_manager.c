@@ -61,9 +61,9 @@ float extract_plugin_version_number(const char *path, const char *regex) {
   if (rc > 0) {
     PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(match_data);
 
-    if (rc > 1) {
-      PCRE2_SIZE start = ovector[2]; // first group start
-      PCRE2_SIZE end = ovector[3]; // first group end
+    if (rc > 2) {
+      PCRE2_SIZE start = ovector[4]; // second group start (the float parsable part \d\.\d)
+      PCRE2_SIZE end = ovector[5]; // second group end
       size_t len = end - start;
 
       char buf[BUF_LEN_XS];
@@ -80,6 +80,44 @@ float extract_plugin_version_number(const char *path, const char *regex) {
   pcre2_code_free(re);
 
   return version;
+}
+
+void extract_plugin_version_string(const char *path, const char *regex, char *out, size_t out_len) {
+  int n = 0;
+  size_t group_count = 2; // magic number 2 means the plugin regex has 2 groups
+  int errornumber = 0, rc = -1;
+  PCRE2_SIZE erroroffset;
+
+  if (!regex || !path || !out || out_len == 0) return;
+  out[0] = '\0';
+
+  pcre2_code *re = pcre2_compile(
+    (PCRE2_SPTR)regex,
+    PCRE2_ZERO_TERMINATED,
+    0,
+    &errornumber,
+    &erroroffset,
+    NULL
+  );
+
+  if (!re) return;
+
+  pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(re, NULL);
+  rc = pcre2_match(re, (PCRE2_SPTR)path, strlen(path), 0, 0, match_data, NULL);
+
+  if (rc > 1) {
+    PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(match_data);
+    PCRE2_SIZE start = ovector[2]; // first group start
+    PCRE2_SIZE end = ovector[3]; // first group end
+    size_t len = end - start;
+
+    if (len >= out_len) len = out_len - 1;
+    memcpy(out, path + start, len);
+    out[len] = '\0';
+  }
+
+  pcre2_match_data_free(match_data);
+  pcre2_code_free(re);
 }
 
 PluginDriver_t *validate_plugin_ABI(PluginHandle_t handle, StackErrorMessage_t *err) {

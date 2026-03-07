@@ -214,13 +214,30 @@ StorageContext_t *create_local_fs_context() {
 }
 /* ----------------------------------------------------------- */
 
+static StorageContext_t *context_lookup[SUPPORTED_PROTOCOL_COUNT] = {
+  [PTC_S3] = NULL,
+  [PTC_SFTP] = NULL,
+  [PTC_LOCAL] = NULL,
+};
+
 StackStatus_t destroy_storage_context(StorageContext_t *ctx) {
   StackStatus_t status = EXEC_SUCCESS;
 
+  if (!ctx) return status;
+
   ctx->cleanup(ctx);
+
+  /* remove from lookup before freeing */
+  for (int i = 0; i < SUPPORTED_PROTOCOL_COUNT; i++) {
+    if (context_lookup[i] == ctx) {
+      context_lookup[i] = NULL;
+      break;
+    }
+  }
+
   free(ctx);
 
- return status;
+  return status;
 }
 
 RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
@@ -238,11 +255,7 @@ RemoteStorageProtocol_t extract_protocol_from_uri(const char *uri) {
   return ptc;
 }
 
-static StorageContext_t *context_lookup[SUPPORTED_PROTOCOL_COUNT] = {
-  [PTC_S3] = NULL,
-  [PTC_SFTP] = NULL,
-  [PTC_LOCAL] = NULL,
-};
+
 
 StorageContext_t *get_storage_context_from_protocol(RemoteStorageProtocol_t ptc) {
   switch (ptc) {
