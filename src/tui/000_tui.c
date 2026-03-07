@@ -42,7 +42,7 @@ static void init_color_pairs() {
   init_pair(CP_WARNING,   COLOR_YELLOW,  -1);
   init_pair(CP_ACCENT,    COLOR_CYAN,    -1);
   init_pair(CP_HIGHLIGHT, COLOR_BLACK,   COLOR_CYAN);
-  init_pair(CP_BORDER,    COLOR_CYAN,    -1);
+  init_pair(CP_BORDER,    COLOR_WHITE,   -1);
   init_pair(CP_LOGO,      COLOR_GREEN,   -1);
   init_pair(CP_SUCCESS,   COLOR_GREEN,   -1);
 }
