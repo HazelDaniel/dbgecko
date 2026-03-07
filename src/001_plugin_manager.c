@@ -317,3 +317,72 @@ StackStatus_t load_plugin(StackErrorMessage_t *err, const char *key_) {
 
   return status;
 }
+
+int discover_available_plugins(const char *plugin_dir, PluginInfo_t *out, int max_count) {
+  DIR *dir = NULL;
+  struct dirent *entry = NULL;
+  struct stat st;
+  char fullpath[BUF_LEN_L];
+  int count = 0;
+
+  static const char *regexes[] = {
+    POSTGRES_PLUGIN_REGEX,
+    MYSQL_PLUGIN_REGEX,
+    MONGO_PLUGIN_REGEX
+  };
+  static const char *type_names[] = { "postgres", "mysql", "mongodb" };
+  static const int num_types = 3;
+
+  if (!plugin_dir || !plugin_dir[0] || !out) return 0;
+
+  dir = opendir(plugin_dir);
+  if (!dir) return 0;
+
+  while ((entry = readdir(dir)) != NULL && count < max_count) {
+    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+      continue;
+
+    snprintf(fullpath, sizeof(fullpath), "%s", plugin_dir);
+    if (fullpath[strlen(fullpath) - 1] != '/') {
+      strncat(fullpath, "/", sizeof(fullpath) - strlen(fullpath) - 1);
+    }
+    strncat(fullpath, entry->d_name, sizeof(fullpath) - strlen(fullpath) - 1);
+
+    if (stat(fullpath, &st) != 0 || !S_ISREG(st.st_mode)) continue;
+
+    for (int t = 0; t < num_types; t++) {
+      int errornumber;
+      PCRE2_SIZE erroroffset;
+
+      pcre2_code *re = pcre2_compile(
+        (PCRE2_SPTR)regexes[t],
+        PCRE2_ZERO_TERMINATED, 0,
+        &errornumber, &erroroffset, NULL
+      );
+      if (!re) continue;
+
+      pcre2_match_data *md = pcre2_match_data_create_from_pattern(re, NULL);
+      int rc = pcre2_match(re, (PCRE2_SPTR)entry->d_name,
+        strlen(entry->d_name), 0, 0, md, NULL);
+
+      if (rc >= 0) {
+        char ver_str[BUF_LEN_XS] = {0};
+        extract_plugin_version_string(entry->d_name, regexes[t], ver_str, sizeof(ver_str));
+        if (ver_str[0] == '\0') continue; // Skip if version extraction failed
+        snprintf(out[count].name, BUF_LEN_XS, "%s v%s", type_names[t], ver_str);
+        strncpy(out[count].path, fullpath, BUF_LEN_M - 1);
+        out[count].path[BUF_LEN_M - 1] = '\0';
+        count++;
+        pcre2_match_data_free(md);
+        pcre2_code_free(re);
+        break;
+      }
+
+      pcre2_match_data_free(md);
+      pcre2_code_free(re);
+    }
+  }
+
+  closedir(dir);
+  return count;
+}

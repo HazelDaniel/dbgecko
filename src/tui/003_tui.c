@@ -138,7 +138,7 @@ void widget_draw_menu(WINDOW *win, const char **items, int count, int selected, 
   for (i = 0; i < count; i++) {
     if (i == selected) {
       wattron(win, COLOR_PAIR(CP_HIGHLIGHT) | A_BOLD);
-      mvwprintw(win, start_y + i * 2, start_x, " ▸ %s", items[i]);
+      mvwprintw(win, start_y + i * 2, start_x, " > %s", items[i]);
       wattroff(win, COLOR_PAIR(CP_HIGHLIGHT) | A_BOLD);
     } else {
       wattron(win, COLOR_PAIR(CP_NORMAL));
@@ -273,20 +273,93 @@ int widget_draw_input_modal(TUIState_t *state, const char *title, const char *pr
 }
 
 void widget_draw_logo(WINDOW *win, int start_y, int start_x) {
+  /* draw gecko art first */
+  widget_draw_gecko_logo(win, start_y, start_x + 4);
+
+  /* text banner below gecko */
+  int text_y = start_y + 10;
+
   wattron(win, COLOR_PAIR(CP_LOGO) | A_BOLD);
 
-  mvwprintw(win, start_y,     start_x, "     ____  ____   ____           _         ");
-  mvwprintw(win, start_y + 1, start_x, "    |  _ \\| __ ) / ___| ___  ___| | _____  ");
-  mvwprintw(win, start_y + 2, start_x, "    | | | |  _ \\| |  _ / _ \\/ __| |/ / _ \\ ");
-  mvwprintw(win, start_y + 3, start_x, "    | |_| | |_) | |_| |  __/ (__|   < (_) |");
-  mvwprintw(win, start_y + 4, start_x, "    |____/|____/ \\____|\\___|\\___||_|\\_\\___/ ");
+  mvwprintw(win, text_y,     start_x, "     ____  ____   ____           _         ");
+  mvwprintw(win, text_y + 1, start_x, "    |  _ \\| __ ) / ___| ___  ___| | _____  ");
+  mvwprintw(win, text_y + 2, start_x, "    | | | |  _ \\| |  _ / _ \\/ __| |/ / _ \\ ");
+  mvwprintw(win, text_y + 3, start_x, "    | |_| | |_) | |_| |  __/ (__|   < (_) |");
+  mvwprintw(win, text_y + 4, start_x, "    |____/|____/ \\____|\\___|\\___||_|\\_\\___/ ");
 
   wattroff(win, A_BOLD);
 
   wattron(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
-  mvwprintw(win, start_y + 6, start_x + 8, "Database Backup & Restore Utility");
-  mvwprintw(win, start_y + 7, start_x + 14, "v%.1f", CURRENT_PLATFORM_VERSION);
+  mvwprintw(win, text_y + 6, start_x + 8, "Database Backup & Restore Utility");
+  mvwprintw(win, text_y + 7, start_x + 14, "v%.1f", CURRENT_PLATFORM_VERSION);
   wattroff(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
 
   wattroff(win, COLOR_PAIR(CP_LOGO));
+}
+
+void widget_draw_gecko_logo(WINDOW *win, int start_y, int start_x) {
+  wattron(win, COLOR_PAIR(CP_LOGO) | A_BOLD);
+
+  mvwprintw(win, start_y,     start_x, "        .--.      ");
+  mvwprintw(win, start_y + 1, start_x, "       /    \\     ");
+  mvwprintw(win, start_y + 2, start_x, "      | (o)(o)    ");
+  mvwprintw(win, start_y + 3, start_x, "      |   /\\      ");
+  mvwprintw(win, start_y + 4, start_x, " /\\   |  (__) |   ");
+  mvwprintw(win, start_y + 5, start_x, "| \\   \\______/    ");
+  mvwprintw(win, start_y + 6, start_x, " \\ \\   |    |     ");
+  mvwprintw(win, start_y + 7, start_x, "  \\ \\__|    |__   ");
+  mvwprintw(win, start_y + 8, start_x, "   \\__________/   ");
+
+  wattroff(win, COLOR_PAIR(CP_LOGO) | A_BOLD);
+}
+
+void widget_draw_plugin_list(WINDOW *win, TUIState_t *state) {
+  int max_h, max_w, draw_count, i;
+
+  getmaxyx(win, max_h, max_w);
+  draw_count = max_h - 2; /* usable rows inside border */
+
+  if (state->plugin_count == 0) {
+    wattron(win, A_DIM | COLOR_PAIR(CP_ACCENT));
+    mvwprintw(win, 1, 2, "No plugins found");
+    wattroff(win, A_DIM | COLOR_PAIR(CP_ACCENT));
+    return;
+  }
+
+  /* adjust scroll to keep selected visible */
+  if (state->plugin_selected < state->plugin_scroll) {
+    state->plugin_scroll = state->plugin_selected;
+  }
+  if (state->plugin_selected >= state->plugin_scroll + draw_count) {
+    state->plugin_scroll = state->plugin_selected - draw_count + 1;
+  }
+
+  for (i = 0; i < draw_count && (state->plugin_scroll + i) < state->plugin_count; i++) {
+    int idx = state->plugin_scroll + i;
+    _Bool is_selected = (idx == state->plugin_selected);
+    _Bool is_active = (state->plugin_loaded &&
+      strcmp(state->active_plugin_key, state->plugin_names[idx]) == 0);
+    int label_max = max_w - 6;
+
+    if (is_selected) {
+      wattron(win, COLOR_PAIR(CP_HIGHLIGHT) | A_BOLD);
+      mvwprintw(win, i + 1, 1, " %s %.*s",
+        is_active ? "●" : "▸",
+        label_max > 0 ? label_max : 0,
+        state->plugin_names[idx]);
+      wattroff(win, COLOR_PAIR(CP_HIGHLIGHT) | A_BOLD);
+    } else if (is_active) {
+      wattron(win, COLOR_PAIR(CP_SUCCESS) | A_BOLD);
+      mvwprintw(win, i + 1, 1, " * %.*s",
+        label_max > 0 ? label_max : 0,
+        state->plugin_names[idx]);
+      wattroff(win, COLOR_PAIR(CP_SUCCESS) | A_BOLD);
+    } else {
+      wattron(win, COLOR_PAIR(CP_NORMAL));
+      mvwprintw(win, i + 1, 1, "   %.*s",
+        label_max > 0 ? label_max : 0,
+        state->plugin_names[idx]);
+      wattroff(win, COLOR_PAIR(CP_NORMAL));
+    }
+  }
 }

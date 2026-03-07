@@ -19,7 +19,9 @@ void widget_draw_modal(TUIState_t *state, const char *title, const char *msg);
 int  widget_draw_input_modal(TUIState_t *state, const char *title, const char *prompt, char *buf, size_t len);
 void widget_draw_menu(WINDOW *win, const char **items, int count, int selected, int start_y, int start_x);
 void widget_draw_logo(WINDOW *win, int start_y, int start_x);
+void widget_draw_gecko_logo(WINDOW *win, int start_y, int start_x);
 void widget_draw_bordered_window(WINDOW *win, const char *title, int color_pair);
+void widget_draw_plugin_list(WINDOW *win, TUIState_t *state);
 
 
 #endif /* ___TUI_WIDGETS_H___ */

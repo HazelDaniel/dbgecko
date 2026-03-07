@@ -14,6 +14,7 @@ add_library(dbgecko_core SHARED ${SRC_FILES})
 find_package(PkgConfig REQUIRED)
 find_package(libssh REQUIRED)
 find_package(OpenSSL REQUIRED)
+set(CURSES_NEED_NCURSESW TRUE)
 find_package(Curses REQUIRED)
 
 # External libs
