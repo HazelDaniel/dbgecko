@@ -207,8 +207,7 @@ int widget_draw_input_modal(TUIState_t *state, const char *title, const char *pr
   modal = newwin(modal_h, modal_w, start_y, start_x);
   state->win_modal = modal;
   keypad(modal, TRUE);
-  cursor_pos = 0;
-  memset(buf, 0, len);
+  cursor_pos = strlen(buf);
 
   for (;;) {
     werase(modal);
@@ -272,45 +271,24 @@ int widget_draw_input_modal(TUIState_t *state, const char *title, const char *pr
   }
 }
 
-void widget_draw_logo(WINDOW *win, int start_y, int start_x) {
-  /* draw gecko art first */
-  widget_draw_gecko_logo(win, start_y, start_x + 4);
+void widget_draw_logo(WINDOW *win, int start_y, int start_x) { }
+void widget_draw_gecko_logo(WINDOW *win, int start_y, int start_x) { }
 
-  /* text banner below gecko */
-  int text_y = start_y + 10;
-
+void widget_draw_brand_name(WINDOW *win, int start_y, int start_x) {
   wattron(win, COLOR_PAIR(CP_LOGO) | A_BOLD);
 
-  mvwprintw(win, text_y,     start_x, "     ____  ____   ____           _         ");
-  mvwprintw(win, text_y + 1, start_x, "    |  _ \\| __ ) / ___| ___  ___| | _____  ");
-  mvwprintw(win, text_y + 2, start_x, "    | | | |  _ \\| |  _ / _ \\/ __| |/ / _ \\ ");
-  mvwprintw(win, text_y + 3, start_x, "    | |_| | |_) | |_| |  __/ (__|   < (_) |");
-  mvwprintw(win, text_y + 4, start_x, "    |____/|____/ \\____|\\___|\\___||_|\\_\\___/ ");
-
-  wattroff(win, A_BOLD);
-
-  wattron(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
-  mvwprintw(win, text_y + 6, start_x + 8, "Database Backup & Restore Utility");
-  mvwprintw(win, text_y + 7, start_x + 14, "v%.1f", CURRENT_PLATFORM_VERSION);
-  wattroff(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
-
-  wattroff(win, COLOR_PAIR(CP_LOGO));
-}
-
-void widget_draw_gecko_logo(WINDOW *win, int start_y, int start_x) {
-  wattron(win, COLOR_PAIR(CP_LOGO) | A_BOLD);
-
-  mvwprintw(win, start_y,     start_x, "        .--.      ");
-  mvwprintw(win, start_y + 1, start_x, "       /    \\     ");
-  mvwprintw(win, start_y + 2, start_x, "      | (o)(o)    ");
-  mvwprintw(win, start_y + 3, start_x, "      |   /\\      ");
-  mvwprintw(win, start_y + 4, start_x, " /\\   |  (__) |   ");
-  mvwprintw(win, start_y + 5, start_x, "| \\   \\______/    ");
-  mvwprintw(win, start_y + 6, start_x, " \\ \\   |    |     ");
-  mvwprintw(win, start_y + 7, start_x, "  \\ \\__|    |__   ");
-  mvwprintw(win, start_y + 8, start_x, "   \\__________/   ");
+  mvwprintw(win, start_y,     start_x, "      _  _                 _         ");
+  mvwprintw(win, start_y + 1, start_x, "   __| || |__   __ _  ___ | | __ ___  ");
+  mvwprintw(win, start_y + 2, start_x, "  / _` || '_ \\ / _` |/ _ \\| |/ // _ \\ ");
+  mvwprintw(win, start_y + 3, start_x, " | (_| || |_) | (_| |  __/|   <| (_) |");
+  mvwprintw(win, start_y + 4, start_x, "  \\__,_||_.__/ \\__, |\\___||_|\\_\\\\___/ ");
+  mvwprintw(win, start_y + 5, start_x, "               |___/                  ");
 
   wattroff(win, COLOR_PAIR(CP_LOGO) | A_BOLD);
+  
+  wattron(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
+  mvwprintw(win, start_y + 7, start_x + 6, "Database Backup & Restore Utility");
+  wattroff(win, COLOR_PAIR(CP_ACCENT) | A_DIM);
 }
 
 void widget_draw_plugin_list(WINDOW *win, TUIState_t *state) {
