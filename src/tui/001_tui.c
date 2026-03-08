@@ -109,16 +109,15 @@ void tui_draw_startup_screen(TUIState_t *state) {
   getmaxyx(stdscr, max_y, max_x);
   erase();
 
-  /* draw logo centered near top (gecko + text banner ~ 19 lines tall) */
+  /* draw brand name centered near top */
   logo_start_y = 2;
-  logo_start_x = (max_x / 2) - 25;
-
+  logo_start_x = (max_x / 2) - 19;
   if (logo_start_x < 0) logo_start_x = 0;
 
-  widget_draw_logo(stdscr, logo_start_y, logo_start_x);
+  widget_draw_brand_name(stdscr, logo_start_y, logo_start_x);
 
-  /* draw menu centered below logo (gecko=9 + gap=1 + text=8 = 18 lines) */
-  menu_start_y = logo_start_y + 20;
+  /* draw menu centered below brand */
+  menu_start_y = logo_start_y + 11;
   menu_start_x = (max_x / 2) - 12;
 
   if (menu_start_x < 0) menu_start_x = 0;
@@ -190,6 +189,23 @@ int tui_handle_startup_input(TUIState_t *state, int ch) {
         tui_push_log(state, LOG_WARN, "Please load a configuration first");
 
         break;
+      }
+
+      if (state->menu_selected == TUI_OP_BACKUP || state->menu_selected == TUI_OP_RESTORE) {
+        AppConfig_t *cfg = *get_app_config_handle();
+        char path_buf[TUI_INPUT_BUF_LEN];
+        strncpy(path_buf, cfg->storage->output_name, sizeof(path_buf));
+        
+        int res = widget_draw_input_modal(state, 
+          state->menu_selected == TUI_OP_BACKUP ? " Backup Destination " : " Restore Source ",
+          "Filename: ", path_buf, sizeof(path_buf));
+          
+        if (res == 0 && path_buf[0]) {
+          strncpy(cfg->storage->output_name, path_buf, sizeof(cfg->storage->output_name));
+          tui_push_log(state, LOG_INFO, "Target filename set to: %s", path_buf);
+        } else {
+          return -1; // Canceled
+        }
       }
 
       state->screen = TUI_SCREEN_OPERATION;

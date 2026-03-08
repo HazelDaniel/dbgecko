@@ -75,17 +75,33 @@ static void s3_meta_request_finish(struct aws_s3_meta_request *meta_request, con
   S3State_t *s = user_data;
 
   if (result->error_code != AWS_ERROR_SUCCESS) {
-    fprintf(stderr, "[dbgecko] s3 meta-request finished with error %d: %s (%s)\n",
-      result->error_code,
-      aws_error_name(result->error_code),
-      aws_error_debug_str(result->error_code));
-    if (result->response_status) {
-      fprintf(stderr, "[dbgecko] HTTP status: %d\n", result->response_status);
-    }
-    if (result->error_response_body && result->error_response_body->len > 0) {
-      fprintf(stderr, "[dbgecko] Response body: %.*s\n",
-        (int)result->error_response_body->len,
-        (const char *)result->error_response_body->buffer);
+    TUIState_t *tui = get_tui_state();
+    if (tui) {
+      tui_push_log(tui, LOG_ERROR, "[s3] meta-request failed: %d: %s (%s)",
+        result->error_code,
+        aws_error_name(result->error_code),
+        aws_error_debug_str(result->error_code));
+      if (result->response_status) {
+        tui_push_log(tui, LOG_ERROR, "[s3] HTTP status: %d", result->response_status);
+      }
+      if (result->error_response_body && result->error_response_body->len > 0) {
+        tui_push_log(tui, LOG_ERROR, "[s3] Response body: %.*s",
+          (int)result->error_response_body->len,
+          (const char *)result->error_response_body->buffer);
+      }
+    } else {
+      fprintf(stderr, "[dbgecko] s3 meta-request finished with error %d: %s (%s)\n",
+        result->error_code,
+        aws_error_name(result->error_code),
+        aws_error_debug_str(result->error_code));
+      if (result->response_status) {
+        fprintf(stderr, "[dbgecko] HTTP status: %d\n", result->response_status);
+      }
+      if (result->error_response_body && result->error_response_body->len > 0) {
+        fprintf(stderr, "[dbgecko] Response body: %.*s\n",
+          (int)result->error_response_body->len,
+          (const char *)result->error_response_body->buffer);
+      }
     }
   }
 
@@ -344,17 +360,33 @@ static void s3_get_finished(struct aws_s3_meta_request *req, const struct aws_s3
   S3ReadState_t *st = user_data;
 
   if (result->error_code != AWS_ERROR_SUCCESS) {
-    fprintf(stderr, "[dbgecko] s3 GET finished with error %d: %s (%s)\n",
-      result->error_code,
-      aws_error_name(result->error_code),
-      aws_error_debug_str(result->error_code));
-    if (result->response_status) {
-      fprintf(stderr, "[dbgecko] HTTP status: %d\n", result->response_status);
-    }
-    if (result->error_response_body && result->error_response_body->len > 0) {
-      fprintf(stderr, "[dbgecko] Response body: %.*s\n",
-        (int)result->error_response_body->len,
-        (const char *)result->error_response_body->buffer);
+    TUIState_t *tui = get_tui_state();
+    if (tui) {
+      tui_push_log(tui, LOG_ERROR, "[s3] GET failed: %d: %s (%s)",
+        result->error_code,
+        aws_error_name(result->error_code),
+        aws_error_debug_str(result->error_code));
+      if (result->response_status) {
+        tui_push_log(tui, LOG_ERROR, "[s3] HTTP status: %d", result->response_status);
+      }
+      if (result->error_response_body && result->error_response_body->len > 0) {
+        tui_push_log(tui, LOG_ERROR, "[s3] Response body: %.*s",
+          (int)result->error_response_body->len,
+          (const char *)result->error_response_body->buffer);
+      }
+    } else {
+      fprintf(stderr, "[dbgecko] s3 GET finished with error %d: %s (%s)\n",
+        result->error_code,
+        aws_error_name(result->error_code),
+        aws_error_debug_str(result->error_code));
+      if (result->response_status) {
+        fprintf(stderr, "[dbgecko] HTTP status: %d\n", result->response_status);
+      }
+      if (result->error_response_body && result->error_response_body->len > 0) {
+        fprintf(stderr, "[dbgecko] Response body: %.*s\n",
+          (int)result->error_response_body->len,
+          (const char *)result->error_response_body->buffer);
+      }
     }
   }
 
